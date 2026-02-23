@@ -1,71 +1,139 @@
 # Copilot Instructions
 
 ## Project Overview
-`sheniamanati-kiosk` is a Next.js 16 kiosk application using the **App Router** (not Pages Router), React 19, TypeScript 5, Tailwind CSS 4, and **shadcn/ui** (new-york style).
+`sheniamanati-kiosk` is a Next.js 16 tablet kiosk app for a parcel/cargo pickup company. It has two surfaces: an **external customer-facing tablet** (`/client`) and an **internal employee tablet** (`/internal`). The landing screen (`/`) lets you choose which to open.
+
+**Language:** All UI text is in Georgian (`ka`). Keep it that way.
 
 ## Dev Commands
 ```bash
-npm run dev    # Start dev server at localhost:3000
-npm run build  # Production build
+npm run dev    # localhost:3000
+npm run build  # Production build (TypeScript checked)
 npm start      # Serve production build
-npm run lint   # ESLint (flat config, Next.js core web vitals + TypeScript rules)
+npm run lint   # ESLint flat config
 ```
+
+## Route Map
+| Route | Surface | Notes |
+|---|---|---|
+| `/` | Landing | Two half-screen nav buttons |
+| `/client` | Customer tablet | Full kiosk flow |
+| `/internal` | Employee tablet | Login → requests table |
+| `/api/client/identify` | POST | Validate room number, return phone mask |
+| `/api/client/verify-otp` | POST | Validate SMS OTP, create pickup request |
+| `/api/internal/auth` | POST | Employee login (mock: `admin`/`admin123`) |
+| `/api/internal/requests` | GET | Active pickup requests list |
+| `/api/internal/mark-received` | POST | Mark a request as fulfilled |
 
 ## Project Structure
 ```
-app/              # App Router: layouts, pages, and route segments
-  layout.tsx      # Root layout — Geist fonts, metadata, HTML shell
-  page.tsx        # Home page (/ route)
-  globals.css     # Tailwind entry + shadcn CSS vars (oklch color system)
-components/ui/    # shadcn/ui components (auto-generated, do not hand-edit)
+app/
+  page.tsx                      # Landing — two full-height nav buttons
+  client/page.tsx               # Customer portal state machine ("use client")
+  internal/page.tsx             # Internal app state machine ("use client")
+  api/client/identify/          # POST — room number validation
+  api/client/verify-otp/        # POST — SMS OTP validation
+  api/internal/auth/            # POST — employee login
+  api/internal/requests/        # GET  — active requests
+  api/internal/mark-received/   # POST — mark fulfilled
+  globals.css                   # Tailwind v4 + full dark token system
+  layout.tsx                    # lang="ka", className="dark", overflow-hidden
+components/
+  kiosk/
+    Screensaver.tsx             # Idle screen — tap/touch to activate
+    TabletSetup.tsx             # One-time tablet ID picker (3-digit keypad)
+    RoomKeypad.tsx              # Step 1: 6-digit room number + NumericKeypad + 60s timeout
+    OtpKeypad.tsx               # Step 2: 6-digit SMS OTP + NumericKeypad + phone mask
+    WaitingScreen.tsx           # Confirmation — auto-resets to screensaver in 10s
+  internal/
+    LoginScreen.tsx             # Username + password form
+    RequestsTable.tsx           # Active requests table — polls every 10s
+  shared/
+    NumericKeypad.tsx           # Touch-optimized 3×3 + 0 + ⌫ keypad
+    OtpDisplay.tsx              # Row of N digit boxes with filled/active/error states
+  ui/                           # shadcn/ui primitives (button, input, card, badge)
+hooks/
+  useInactivityTimer.ts         # 60s inactivity → callback; resets on pointer/touch/key
 lib/
-  utils.ts        # cn() helper (clsx + tailwind-merge)
-hooks/            # Custom React hooks
-public/           # Static assets served at /
-components.json   # shadcn config (style, aliases, icon library)
-next.config.ts    # Next.js config (currently empty, typed as NextConfig)
+  utils.ts                      # cn() helper
 ```
 
-New routes: add a directory under `app/` with `page.tsx`. API routes: `app/api/<name>/route.ts`.
+## Customer Portal Flow (`/client`)
+```
+[no localStorage "tabletId"]
+        │
+        ▼
+  TabletSetup  ──confirm──►  saved to localStorage → Screensaver
+                                      │
+                              Screensaver ──tap──► RoomKeypad
+                                                       │ 60s idle → back to Screensaver
+                                              POST /api/client/identify
+                                                  │          │
+                                               valid       invalid → show error, retry
+                                                  │
+                                             OtpKeypad (phone mask shown)
+                                                  │
+                                              POST /api/client/verify-otp
+                                                  │          │
+                                               valid       invalid → show error, retry
+                                                  │
+                                           WaitingScreen ──(10s)──► Screensaver
+```
+- Tablet ID: `localStorage["tabletId"]`, 3 digits, set once per device, persists across reloads.
+- Room number and OTP both **auto-submit on 6th digit** — no separate confirm button.
+- `useInactivityTimer(60_000, goBack)` is active on `RoomKeypad` only.
+
+## Internal App Flow (`/internal`)
+```
+LoginScreen ── POST /api/internal/auth ──► RequestsTable
+                                                │
+                                     polls GET /api/internal/requests every 10s
+                                                │
+                                  "მიღებულია" → POST /api/internal/mark-received
+                                             (row removed optimistically)
+```
+
+## Key Shared Components
+
+### `NumericKeypad` (`components/shared/NumericKeypad.tsx`)
+Props: `onDigit(digit: string)`, `onDelete()`, `disabled?`
+Layout: 3×3 grid + bottom row [empty | 0 | ⌫]. Each key: `h-20 rounded-xl active:scale-95 active:bg-primary/10`.
+
+### `OtpDisplay` (`components/shared/OtpDisplay.tsx`)
+Props: `digits: string[]`, `length?: number (default 6)`, `activeIndex: number`, `error?: boolean`
+- Filled: amber border + glow. Active: pulsing amber border. Error: destructive colors.
+
+### `useInactivityTimer` (`hooks/useInactivityTimer.ts`)
+```ts
+useInactivityTimer(60_000, () => setScreen("screensaver"))
+// Listens: pointermove, pointerdown, keydown, touchstart
+```
+
+## Art Direction — Design Language
+**Always dark** — `.dark` is on `<html>`. Never use `prefers-color-scheme`.
+
+**Palette (oklch):**
+- Background: `oklch(0.07 0.012 265)` — near-black, blue-indigo tint
+- Card/surface: `oklch(0.11 0.015 265)`
+- **Primary: amber/gold** `oklch(0.78 0.19 55)` — buttons, borders, glow, active
+- Success: `oklch(0.65 0.2 145)` — waiting screen, "mark received" button
+- Destructive: `oklch(0.65 0.23 25)` — error states
+
+**Typography:** `text-3xl font-bold` minimum for headings. Codes/numbers use `font-mono` (Geist Mono). Section labels: `text-sm tracking-widest uppercase text-primary`.
+
+**Glow pattern:** `shadow-[0_0_32px_oklch(0.78_0.19_55/0.15)]` on hover. Ambient: `absolute div bg-primary/10 blur-[80px]` behind icons. Keys: `active:scale-95 active:bg-primary/10`.
 
 ## shadcn/ui
+Add: `npx shadcn@latest add <component>`. Config: `new-york`, `neutral`, `lucide`.
+Always use `cn()` from `@/lib/utils` for conditional classes.
 
-**Adding components:**
-```bash
-npx shadcn@latest add <component>   # e.g. button, input, dialog
-```
-Components are copied into `components/ui/` — they're owned by this repo and can be modified freely.
+## API Integration
+All `app/api/` routes contain `// TODO:` where real DB/SMS calls go.
+- `PickupRequest` type is exported from `app/api/internal/requests/route.ts`.
+- Mock credentials: `admin` / `admin123`.
 
-**Config** (`components.json`): style=`new-york`, baseColor=`neutral`, icons=`lucide`, RSC=`true`.
-
-**`cn()` utility** — always use for conditional/merged Tailwind classes:
-```ts
-import { cn } from "@/lib/utils"
-<div className={cn("base-class", isActive && "active-class")} />
-```
-
-**Path aliases** (defined in `components.json` and `tsconfig.json`):
-- `@/components` — shared components
-- `@/components/ui` — shadcn primitives
-- `@/lib` — utilities
-- `@/hooks` — custom hooks
-
-## Styling — Tailwind CSS v4 + shadcn
-
-- CSS entry point is `app/globals.css`. Imports: `tailwindcss`, `tw-animate-css`, `shadcn/tailwind.css`.
-- All design tokens are CSS custom properties using **oklch color space** (e.g. `--primary: oklch(0.205 0 0)`). Edit them in `globals.css` `:root` / `.dark` blocks.
-- `@theme inline` maps Tailwind utility names to CSS vars (e.g. `bg-primary` → `var(--primary)`). Add new tokens here.
-- **Dark mode uses the `.dark` class** (applied to `<html>` or a parent element), not `prefers-color-scheme`. Use `@custom-variant dark (&:is(.dark *))` is already configured.
-
-## TypeScript & Components
-
-- Strict mode enabled. `@/*` alias resolves to the project root.
-- Default to **React Server Components**. Add `"use client"` only when hooks or browser APIs are needed.
-- Use `next/image` for images, `next/font` (Geist Sans/Mono) is already configured in `layout.tsx`.
-- `next-env.d.ts` is auto-generated — do not edit.
-
-## ESLint
-Flat config (`eslint.config.mjs`). Do not create `.eslintrc.*` files. Ignored: `.next/`, `out/`, `build/`.
-
-## Not Yet Set Up
-No testing framework, database, auth, or environment variables. Use `.env.local` for secrets (gitignored).
+## Conventions
+- `overflow-hidden` on `<body>` — all screens fill `h-screen w-screen`, no scrolling.
+- Default to Server Components; `"use client"` only when hooks/browser APIs needed.
+- `next-env.d.ts` — auto-generated, do not edit.
+- ESLint flat config (`eslint.config.mjs`). No `.eslintrc.*` files.
