@@ -7,13 +7,18 @@ export interface PickupRequest {
   clientName: string;
   trackingNumbers: string[];
   roomNumber: string;
+  kioskNumber: string;
   createdAt: string; // ISO string
 }
 
 export async function GET(req: NextRequest) {
   const authorization = req.headers.get("Authorization") ?? "";
+  const branchId = req.nextUrl.searchParams.get("branch_id");
 
-  const res = await fetch(`${API_URL}/api/internal/requests`, {
+  const url = new URL(`${API_URL}/api/internal/requests`);
+  if (branchId) url.searchParams.set("branch_id", branchId);
+
+  const res = await fetch(url.toString(), {
     headers: { Authorization: authorization },
   });
 
@@ -25,12 +30,14 @@ export async function GET(req: NextRequest) {
       client_name: string;
       room_number: string;
       tracking_numbers: string[];
+      kiosk_number: string;
       created_at: string;
     }) => ({
       id: item.id,
       clientName: item.client_name,
       roomNumber: item.room_number,
       trackingNumbers: item.tracking_numbers,
+      kioskNumber: item.kiosk_number ?? "",
       createdAt: item.created_at,
     })
   );
