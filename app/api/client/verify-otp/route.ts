@@ -21,5 +21,6 @@ export async function POST(req: NextRequest) {
     valid: true,
     package_count: data.package_count,
     tracking_numbers: data.tracking_numbers,
+    request_id: data.request_id,
   });
 }

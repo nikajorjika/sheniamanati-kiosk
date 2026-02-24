@@ -2,38 +2,53 @@
 
 import { useEffect, useState } from "react";
 import { Screensaver } from "@/components/kiosk/Screensaver";
-import { TabletSetup } from "@/components/kiosk/TabletSetup";
+import { BranchSelector, type Branch } from "@/components/kiosk/BranchSelector";
+import { TerminalSelector } from "@/components/kiosk/TerminalSelector";
 import { RoomKeypad } from "@/components/kiosk/RoomKeypad";
 import { OtpKeypad } from "@/components/kiosk/OtpKeypad";
 import { WaitingScreen } from "@/components/kiosk/WaitingScreen";
 
-type ClientScreen = "setup" | "screensaver" | "room" | "otp" | "waiting";
+type ClientScreen = "branch-select" | "terminal-select" | "screensaver" | "room" | "otp" | "waiting";
 
 const TABLET_ID_KEY = "tabletId";
-// Auto-reset to screensaver after showing the waiting screen
-const WAITING_RESET_MS = 10_000;
+const BRANCH_ID_KEY = "branchId";
+const BRANCH_NAME_KEY = "branchName";
 
 export default function ClientPortal() {
   const [screen, setScreen] = useState<ClientScreen | null>(null);
   const [tabletId, setTabletId] = useState<string | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [phoneLastThree, setPhoneLastThree] = useState("00");
   const [roomNumber, setRoomNumber] = useState("");
   const [packageCount, setPackageCount] = useState(0);
   const [trackingNumbers, setTrackingNumbers] = useState<string[]>([]);
+  const [requestId, setRequestId] = useState<string | null>(null);
 
-  // On mount: check localStorage for saved tablet ID
+  // On mount: restore saved terminal from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem(TABLET_ID_KEY);
-    if (saved) {
-      setTabletId(saved);
+    const savedTabletId = localStorage.getItem(TABLET_ID_KEY);
+    const savedBranchId = localStorage.getItem(BRANCH_ID_KEY);
+    const savedBranchName = localStorage.getItem(BRANCH_NAME_KEY);
+
+    if (savedTabletId && savedBranchId && savedBranchName) {
+      setTabletId(savedTabletId);
+      setSelectedBranch({ id: Number(savedBranchId), name: savedBranchName });
       setScreen("screensaver");
     } else {
-      setScreen("setup");
+      setScreen("branch-select");
     }
   }, []);
 
-  function handleTabletSetup(id: string) {
+  function handleBranchSelect(branch: Branch) {
+    setSelectedBranch(branch);
+    setScreen("terminal-select");
+  }
+
+  function handleTerminalSelect(terminal: { id: number; number: string; name: string | null }) {
+    const id = String(terminal.id);
     localStorage.setItem(TABLET_ID_KEY, id);
+    localStorage.setItem(BRANCH_ID_KEY, String(selectedBranch!.id));
+    localStorage.setItem(BRANCH_NAME_KEY, selectedBranch!.name);
     setTabletId(id);
     setScreen("screensaver");
   }
@@ -79,27 +94,36 @@ export default function ClientPortal() {
     });
     const data = await res.json();
     if (data.valid) {
-      setPackageCount(data.package_count ?? 1);
+      setPackageCount(data.package_count ?? 0);
       setTrackingNumbers(data.tracking_numbers ?? []);
+      setRequestId(data.request_id ?? null);
       setScreen("waiting");
-      // Auto-reset back to screensaver after WAITING_RESET_MS
-      setTimeout(() => {
-        setRoomNumber("");
-        setPackageCount(0);
-        setTrackingNumbers([]);
-        setScreen("screensaver");
-      }, WAITING_RESET_MS);
       return { valid: true };
     }
     return { valid: false, error: data.error };
   }
 
-  // Haven't determined screen yet (SSR safety)
+  function handleWaitingDone() {
+    setRoomNumber("");
+    setPackageCount(0);
+    setTrackingNumbers([]);
+    setRequestId(null);
+    setScreen("screensaver");
+  }
+
   if (screen === null) return null;
 
   switch (screen) {
-    case "setup":
-      return <TabletSetup onConfirm={handleTabletSetup} />;
+    case "branch-select":
+      return <BranchSelector onSelect={handleBranchSelect} />;
+    case "terminal-select":
+      return (
+        <TerminalSelector
+          branch={selectedBranch!}
+          onSelect={handleTerminalSelect}
+          onBack={() => setScreen("branch-select")}
+        />
+      );
     case "screensaver":
       return <Screensaver onTouch={() => setScreen("room")} />;
     case "room":
@@ -119,6 +143,6 @@ export default function ClientPortal() {
         />
       );
     case "waiting":
-      return <WaitingScreen packageCount={packageCount} trackingNumbers={trackingNumbers} />;
+      return <WaitingScreen packageCount={packageCount} trackingNumbers={trackingNumbers} requestId={requestId} onDone={handleWaitingDone} />;
   }
 }

@@ -1,13 +1,62 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { useEffect } from "react";
+import { CheckCircle2, PackageX } from "lucide-react";
 
 interface WaitingScreenProps {
   packageCount: number;
   trackingNumbers: string[];
+  requestId: string | null;
+  onDone: () => void;
 }
 
-export function WaitingScreen({ packageCount, trackingNumbers }: WaitingScreenProps) {
+export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone }: WaitingScreenProps) {
+  useEffect(() => {
+    if (packageCount === 0) {
+      const t = setTimeout(onDone, 5_000);
+      return () => clearTimeout(t);
+    }
+
+    if (!requestId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/client/pickup-status/${requestId}`);
+        const data = await res.json();
+        if (data.received) {
+          clearInterval(interval);
+          onDone();
+        }
+      } catch {
+        // network hiccup — keep polling
+      }
+    }, 3_000);
+
+    return () => clearInterval(interval);
+  }, [packageCount, requestId, onDone]);
+
+  if (packageCount === 0) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
+        <div className="relative flex items-center justify-center">
+          <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-muted/20 blur-[60px]" />
+          <div className="flex h-32 w-32 items-center justify-center rounded-full border border-border bg-card">
+            <PackageX className="h-16 w-16 text-muted-foreground" strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <div className="max-w-sm space-y-3 text-center">
+          <h1 className="text-3xl font-bold text-foreground">
+            ამანათი არ მოიძებნა
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            გადახდილი ამანათი არ გაქვთ — გთხოვთ, მოგვიანებით სცადოთ
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
       {/* Success glow + icon */}
