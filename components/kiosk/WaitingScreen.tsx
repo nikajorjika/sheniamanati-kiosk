@@ -2,7 +2,12 @@
 
 import { CheckCircle2 } from "lucide-react";
 
-export function WaitingScreen() {
+interface WaitingScreenProps {
+  packageCount: number;
+  trackingNumbers: string[];
+}
+
+export function WaitingScreen({ packageCount, trackingNumbers }: WaitingScreenProps) {
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
       {/* Success glow + icon */}
@@ -19,9 +24,25 @@ export function WaitingScreen() {
           მოთხოვნა მიღებულია
         </h1>
         <p className="text-xl text-muted-foreground">
-          თქვენი ამანათი მზადდება — გთხოვთ, დაიცადოთ
+          თქვენი{" "}
+          <span className="font-bold text-foreground">{packageCount}</span>{" "}
+          {packageCount === 1 ? "ამანათი" : "ამანათი"} მზადდება — გთხოვთ, დაიცადოთ
         </p>
       </div>
+
+      {/* Tracking numbers */}
+      {trackingNumbers.length > 0 && (
+        <div className="flex flex-col items-center gap-2">
+          {trackingNumbers.map((tn) => (
+            <span
+              key={tn}
+              className="rounded-lg border border-border bg-card px-4 py-2 font-mono text-sm text-muted-foreground"
+            >
+              {tn}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Pulsing dots */}
       <div className="flex gap-2">

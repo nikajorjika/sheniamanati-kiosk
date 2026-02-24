@@ -18,6 +18,8 @@ export default function ClientPortal() {
   const [tabletId, setTabletId] = useState<string | null>(null);
   const [phoneLastThree, setPhoneLastThree] = useState("00");
   const [roomNumber, setRoomNumber] = useState("");
+  const [packageCount, setPackageCount] = useState(0);
+  const [trackingNumbers, setTrackingNumbers] = useState<string[]>([]);
 
   // On mount: check localStorage for saved tablet ID
   useEffect(() => {
@@ -62,10 +64,14 @@ export default function ClientPortal() {
     });
     const data = await res.json();
     if (data.valid) {
+      setPackageCount(data.package_count ?? 1);
+      setTrackingNumbers(data.tracking_numbers ?? []);
       setScreen("waiting");
       // Auto-reset back to screensaver after WAITING_RESET_MS
       setTimeout(() => {
         setRoomNumber("");
+        setPackageCount(0);
+        setTrackingNumbers([]);
         setScreen("screensaver");
       }, WAITING_RESET_MS);
       return { valid: true };
@@ -91,6 +97,6 @@ export default function ClientPortal() {
     case "otp":
       return <OtpKeypad phoneLastThree={phoneLastThree} onConfirm={handleOtp} />;
     case "waiting":
-      return <WaitingScreen />;
+      return <WaitingScreen packageCount={packageCount} trackingNumbers={trackingNumbers} />;
   }
 }

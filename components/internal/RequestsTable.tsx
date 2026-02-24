@@ -139,8 +139,14 @@ export function RequestsTable({ onLogout }: RequestsTableProps) {
                   <td className="py-4 pr-4 text-base font-medium text-foreground">
                     {req.clientName}
                   </td>
-                  <td className="py-4 pr-4 font-mono text-sm text-muted-foreground">
-                    {req.trackingNumber}
+                  <td className="py-4 pr-4">
+                    <div className="flex flex-col gap-1">
+                      {req.trackingNumbers.map((tn) => (
+                        <span key={tn} className="font-mono text-sm text-muted-foreground">
+                          {tn}
+                        </span>
+                      ))}
+                    </div>
                   </td>
                   <td className="py-4 pr-4 font-mono text-sm font-semibold text-primary">
                     {req.roomNumber}

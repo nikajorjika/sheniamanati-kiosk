@@ -19,5 +19,9 @@ export async function POST(req: NextRequest) {
   // TODO: validate OTP against sent code, create pickup request
   // TODO: push new request to internal tablet (SSE / WebSocket / polling)
 
-  return NextResponse.json({ valid: true });
+  return NextResponse.json({
+    valid: true,
+    package_count: 2,
+    tracking_numbers: ["GE123456789", "GE987654321"],
+  });
 }

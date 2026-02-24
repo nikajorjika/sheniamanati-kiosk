@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export interface PickupRequest {
   id: string;
   clientName: string;
-  trackingNumber: string;
+  trackingNumbers: string[];
   roomNumber: string;
   createdAt: string; // ISO string
 }
@@ -13,26 +13,26 @@ export interface PickupRequest {
 // Real response should fetch all active (not yet received) pickup requests from DB,
 //   filtered by terminal/location if needed
 export async function GET() {
-  // Mock data — 3 active requests
+  // Mock data — 3 active requests (demonstrating multiple packages per guest)
   const requests: PickupRequest[] = [
     {
       id: "req-001",
       clientName: "გიორგი მამალაძე",
-      trackingNumber: "GE123456789",
+      trackingNumbers: ["GE123456789", "GE987654321", "GE555000111"],
       roomNumber: "142857",
       createdAt: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
     },
     {
       id: "req-002",
       clientName: "მარიამ ჯაფარიძე",
-      trackingNumber: "GE987654321",
+      trackingNumbers: ["GE444333222"],
       roomNumber: "271828",
       createdAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
     },
     {
       id: "req-003",
       clientName: "დავით კვარაცხელია",
-      trackingNumber: "GE555000111",
+      trackingNumbers: ["GE111222333", "GE999888777"],
       roomNumber: "314159",
       createdAt: new Date(Date.now() - 28 * 60 * 1000).toISOString(),
     },
