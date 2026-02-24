@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// TODO: Replace with real authentication
-// POST /api/internal/auth
-// Body: { username: string; password: string }
-// Real response should return a session token or set an httpOnly cookie
+const API_URL = process.env.API_URL ?? "http://localhost";
+
 export async function POST(req: NextRequest) {
   const { username, password } = await req.json();
 
-  // Mock credentials — replace with real auth
-  if (username === "admin" && password === "admin123") {
-    return NextResponse.json({ success: true });
+  const res = await fetch(`${API_URL}/api/internal/auth`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+    return NextResponse.json(
+      { success: false, error: data.error },
+      { status: res.status }
+    );
   }
 
-  return NextResponse.json(
-    { success: false, error: "მომხმარებლის სახელი ან პაროლი არასწორია" },
-    { status: 401 }
-  );
+  return NextResponse.json({ success: true, token: data.token });
 }

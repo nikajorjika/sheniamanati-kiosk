@@ -39,7 +39,6 @@ export default function ClientPortal() {
   }
 
   async function handleRoomNumber(num: string): Promise<{ valid: boolean; error?: string }> {
-    // TODO: POST /api/client/identify { tabletId, roomNumber: num }
     const res = await fetch("/api/client/identify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -55,8 +54,24 @@ export default function ClientPortal() {
     return { valid: false, error: data.error };
   }
 
+  async function handleResend(): Promise<void> {
+    const res = await fetch("/api/client/identify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tabletId, roomNumber }),
+    });
+    const data = await res.json();
+    if (data.valid) {
+      setPhoneLastThree(data.phoneLastThree);
+    }
+  }
+
+  function handleOtpCancel() {
+    setRoomNumber("");
+    setScreen("screensaver");
+  }
+
   async function handleOtp(otp: string): Promise<{ valid: boolean; error?: string }> {
-    // TODO: POST /api/client/verify-otp { tabletId, roomNumber, otp }
     const res = await fetch("/api/client/verify-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -95,7 +110,14 @@ export default function ClientPortal() {
         />
       );
     case "otp":
-      return <OtpKeypad phoneLastThree={phoneLastThree} onConfirm={handleOtp} />;
+      return (
+        <OtpKeypad
+          phoneLastThree={phoneLastThree}
+          onConfirm={handleOtp}
+          onResend={handleResend}
+          onCancel={handleOtpCancel}
+        />
+      );
     case "waiting":
       return <WaitingScreen packageCount={packageCount} trackingNumbers={trackingNumbers} />;
   }

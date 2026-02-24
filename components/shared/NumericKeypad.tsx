@@ -1,11 +1,13 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Delete } from "lucide-react";
+import { Delete, ArrowRight } from "lucide-react";
 
 interface NumericKeypadProps {
   onDigit: (digit: string) => void;
   onDelete: () => void;
+  onSubmit: () => void;
+  submitDisabled?: boolean;
   disabled?: boolean;
 }
 
@@ -15,7 +17,13 @@ const ROWS = [
   ["7", "8", "9"],
 ];
 
-export function NumericKeypad({ onDigit, onDelete, disabled = false }: NumericKeypadProps) {
+export function NumericKeypad({
+  onDigit,
+  onDelete,
+  onSubmit,
+  submitDisabled = false,
+  disabled = false,
+}: NumericKeypadProps) {
   return (
     <div className="grid w-full max-w-xs gap-3 select-none mx-auto">
       {ROWS.map((row) => (
@@ -31,18 +39,24 @@ export function NumericKeypad({ onDigit, onDelete, disabled = false }: NumericKe
           ))}
         </div>
       ))}
-      {/* Bottom row: empty spacer, 0, delete */}
+      {/* Bottom row: delete, 0, submit */}
       <div className="grid grid-cols-3 gap-3">
-        <div />
-        <KeyButton disabled={disabled} onClick={() => onDigit("0")}>
-          0
-        </KeyButton>
         <KeyButton
           disabled={disabled}
           onClick={onDelete}
           className="text-muted-foreground"
         >
           <Delete className="h-6 w-6" />
+        </KeyButton>
+        <KeyButton disabled={disabled} onClick={() => onDigit("0")}>
+          0
+        </KeyButton>
+        <KeyButton
+          disabled={disabled || submitDisabled}
+          onClick={onSubmit}
+          className="text-primary border-primary/30 bg-primary/5 hover:bg-primary/15"
+        >
+          <ArrowRight className="h-6 w-6" />
         </KeyButton>
       </div>
     </div>

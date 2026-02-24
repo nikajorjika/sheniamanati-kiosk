@@ -7,12 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import type { PickupRequest } from "@/app/api/internal/requests/route";
 
 interface RequestsTableProps {
+  token: string;
   onLogout: () => void;
 }
 
 const POLL_INTERVAL = 10_000; // 10 seconds
 
-export function RequestsTable({ onLogout }: RequestsTableProps) {
+export function RequestsTable({ token, onLogout }: RequestsTableProps) {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingId, setMarkingId] = useState<string | null>(null);
@@ -20,8 +21,9 @@ export function RequestsTable({ onLogout }: RequestsTableProps) {
 
   const fetchRequests = useCallback(async () => {
     try {
-      // TODO: Replace with real endpoint + auth header
-      const res = await fetch("/api/internal/requests");
+      const res = await fetch("/api/internal/requests", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       setRequests(data.requests ?? []);
       setLastUpdated(new Date());
@@ -30,7 +32,7 @@ export function RequestsTable({ onLogout }: RequestsTableProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     fetchRequests();
@@ -41,10 +43,12 @@ export function RequestsTable({ onLogout }: RequestsTableProps) {
   async function handleMarkReceived(id: string) {
     setMarkingId(id);
     try {
-      // TODO: Replace with real endpoint + auth header
       await fetch("/api/internal/mark-received", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ id }),
       });
       // Optimistically remove from list

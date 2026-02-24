@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// TODO: Replace with real backend call
-// POST /api/internal/mark-received
-// Body: { id: string }
-// Real response should: update request status in DB to "received",
-//   potentially notify client-facing system, log timestamp and employee ID
+const API_URL = process.env.API_URL ?? "http://localhost";
+
 export async function POST(req: NextRequest) {
   const { id } = await req.json();
+  const authorization = req.headers.get("Authorization") ?? "";
 
   if (!id) {
     return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
   }
 
-  // TODO: mark request as received in DB
+  const res = await fetch(`${API_URL}/api/internal/mark-received`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authorization,
+    },
+    body: JSON.stringify({ id }),
+  });
 
-  return NextResponse.json({ success: true });
+  const data = await res.json();
+
+  return NextResponse.json(data, { status: res.status });
 }

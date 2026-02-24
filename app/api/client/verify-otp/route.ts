@@ -1,27 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// TODO: Replace with real backend call
-// POST /api/client/verify-otp
-// Body: { tabletId: string; roomNumber: string; otp: string }
-// Real response should: validate OTP against the one sent via SMS,
-//   create a pickup request record, and notify internal tablet
+const API_URL = process.env.API_URL ?? "http://localhost";
+
 export async function POST(req: NextRequest) {
-  const { otp } = await req.json();
+  const { tabletId, roomNumber, otp } = await req.json();
 
-  // Mock: any 6-digit code is accepted
-  if (!otp || String(otp).length !== 6) {
-    return NextResponse.json(
-      { valid: false, error: "კოდი არასწორია" },
-      { status: 400 }
-    );
+  const res = await fetch(`${API_URL}/api/client/verify-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tablet_id: tabletId, room_number: roomNumber, otp }),
+  });
+
+  const data = await res.json();
+
+  if (!data.valid) {
+    return NextResponse.json({ valid: false, error: data.error }, { status: res.status });
   }
-
-  // TODO: validate OTP against sent code, create pickup request
-  // TODO: push new request to internal tablet (SSE / WebSocket / polling)
 
   return NextResponse.json({
     valid: true,
-    package_count: 2,
-    tracking_numbers: ["GE123456789", "GE987654321"],
+    package_count: data.package_count,
+    tracking_numbers: data.tracking_numbers,
   });
 }

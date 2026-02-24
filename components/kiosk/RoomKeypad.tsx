@@ -12,7 +12,8 @@ interface RoomKeypadProps {
   loading?: boolean;
 }
 
-const LENGTH = 6;
+const MAX_LENGTH = 6;
+const MIN_LENGTH = 1;
 const INACTIVITY_MS = 60_000;
 
 export function RoomKeypad({ onConfirm, onBack, loading = false }: RoomKeypadProps) {
@@ -24,17 +25,22 @@ export function RoomKeypad({ onConfirm, onBack, loading = false }: RoomKeypadPro
   useInactivityTimer(INACTIVITY_MS, onBack);
 
   function handleDigit(d: string) {
-    if (digits.length >= LENGTH || submitting) return;
+    if (digits.length >= MAX_LENGTH || submitting) return;
     setError(null);
     const next = [...digits, d];
     setDigits(next);
-    if (next.length === LENGTH) submit(next);
+    if (next.length === MAX_LENGTH) submit(next);
   }
 
   function handleDelete() {
     if (submitting) return;
     setError(null);
     setDigits((prev) => prev.slice(0, -1));
+  }
+
+  function handleSubmit() {
+    if (digits.length < MIN_LENGTH || submitting) return;
+    submit(digits);
   }
 
   async function submit(filled: string[]) {
@@ -73,7 +79,7 @@ export function RoomKeypad({ onConfirm, onBack, loading = false }: RoomKeypadPro
 
         <OtpDisplay
           digits={digits}
-          length={LENGTH}
+          length={MAX_LENGTH}
           activeIndex={digits.length}
           error={!!error}
         />
@@ -90,6 +96,8 @@ export function RoomKeypad({ onConfirm, onBack, loading = false }: RoomKeypadPro
       <NumericKeypad
         onDigit={handleDigit}
         onDelete={handleDelete}
+        onSubmit={handleSubmit}
+        submitDisabled={digits.length < MIN_LENGTH}
         disabled={submitting || loading}
       />
     </div>

@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+const API_URL = process.env.API_URL ?? "http://localhost";
 
 export interface PickupRequest {
   id: string;
@@ -8,35 +10,30 @@ export interface PickupRequest {
   createdAt: string; // ISO string
 }
 
-// TODO: Replace with real DB query
-// GET /api/internal/requests
-// Real response should fetch all active (not yet received) pickup requests from DB,
-//   filtered by terminal/location if needed
-export async function GET() {
-  // Mock data — 3 active requests (demonstrating multiple packages per guest)
-  const requests: PickupRequest[] = [
-    {
-      id: "req-001",
-      clientName: "გიორგი მამალაძე",
-      trackingNumbers: ["GE123456789", "GE987654321", "GE555000111"],
-      roomNumber: "142857",
-      createdAt: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "req-002",
-      clientName: "მარიამ ჯაფარიძე",
-      trackingNumbers: ["GE444333222"],
-      roomNumber: "271828",
-      createdAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "req-003",
-      clientName: "დავით კვარაცხელია",
-      trackingNumbers: ["GE111222333", "GE999888777"],
-      roomNumber: "314159",
-      createdAt: new Date(Date.now() - 28 * 60 * 1000).toISOString(),
-    },
-  ];
+export async function GET(req: NextRequest) {
+  const authorization = req.headers.get("Authorization") ?? "";
+
+  const res = await fetch(`${API_URL}/api/internal/requests`, {
+    headers: { Authorization: authorization },
+  });
+
+  const data = await res.json();
+
+  const requests: PickupRequest[] = (data.data ?? []).map(
+    (item: {
+      id: string;
+      client_name: string;
+      room_number: string;
+      tracking_numbers: string[];
+      created_at: string;
+    }) => ({
+      id: item.id,
+      clientName: item.client_name,
+      roomNumber: item.room_number,
+      trackingNumbers: item.tracking_numbers,
+      createdAt: item.created_at,
+    })
+  );
 
   return NextResponse.json({ requests });
 }
