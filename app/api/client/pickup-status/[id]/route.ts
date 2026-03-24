@@ -10,5 +10,8 @@ export async function GET(
   const res = await fetch(`${API_URL}/api/client/pickup-status/${id}`);
   const data = await res.json();
 
-  return NextResponse.json({ received: data.received ?? false });
+  return NextResponse.json({
+    received: data.received ?? false,
+    rejected: data.rejected ?? false,
+  });
 }

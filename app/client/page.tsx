@@ -1,56 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Settings } from "lucide-react";
 import { Screensaver } from "@/components/kiosk/Screensaver";
-import { BranchSelector, type Branch } from "@/components/kiosk/BranchSelector";
-import { TerminalSelector } from "@/components/kiosk/TerminalSelector";
 import { RoomKeypad } from "@/components/kiosk/RoomKeypad";
 import { OtpKeypad } from "@/components/kiosk/OtpKeypad";
 import { WaitingScreen } from "@/components/kiosk/WaitingScreen";
+import { loadKioskConfig, clearKioskConfig } from "@/lib/kiosk-storage";
 
-type ClientScreen = "branch-select" | "terminal-select" | "screensaver" | "room" | "otp" | "waiting";
-
-const TABLET_ID_KEY = "tabletId";
-const BRANCH_ID_KEY = "branchId";
-const BRANCH_NAME_KEY = "branchName";
+type ClientScreen = "screensaver" | "room" | "otp" | "waiting";
 
 export default function ClientPortal() {
+  const router = useRouter();
   const [screen, setScreen] = useState<ClientScreen | null>(null);
   const [tabletId, setTabletId] = useState<string | null>(null);
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [phoneLastThree, setPhoneLastThree] = useState("00");
   const [roomNumber, setRoomNumber] = useState("");
   const [packageCount, setPackageCount] = useState(0);
   const [trackingNumbers, setTrackingNumbers] = useState<string[]>([]);
   const [requestId, setRequestId] = useState<string | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  // On mount: restore saved terminal from localStorage
   useEffect(() => {
-    const savedTabletId = localStorage.getItem(TABLET_ID_KEY);
-    const savedBranchId = localStorage.getItem(BRANCH_ID_KEY);
-    const savedBranchName = localStorage.getItem(BRANCH_NAME_KEY);
-
-    if (savedTabletId && savedBranchId && savedBranchName) {
-      setTabletId(savedTabletId);
-      setSelectedBranch({ id: Number(savedBranchId), name: savedBranchName });
-      setScreen("screensaver");
-    } else {
-      setScreen("branch-select");
+    const config = loadKioskConfig();
+    if (!config || config.terminalType !== "front") {
+      router.replace("/");
+      return;
     }
-  }, []);
-
-  function handleBranchSelect(branch: Branch) {
-    setSelectedBranch(branch);
-    setScreen("terminal-select");
-  }
-
-  function handleTerminalSelect(terminal: { id: number; number: string; name: string | null }) {
-    const id = String(terminal.id);
-    localStorage.setItem(TABLET_ID_KEY, id);
-    localStorage.setItem(BRANCH_ID_KEY, String(selectedBranch!.id));
-    localStorage.setItem(BRANCH_NAME_KEY, selectedBranch!.name);
-    setTabletId(id);
+    setTabletId(String(config.terminalId));
     setScreen("screensaver");
+  }, [router]);
+
+  function handleResetDevice() {
+    clearKioskConfig();
+    router.replace("/");
   }
 
   async function handleRoomNumber(num: string): Promise<{ valid: boolean; error?: string }> {
@@ -113,36 +97,61 @@ export default function ClientPortal() {
 
   if (screen === null) return null;
 
-  switch (screen) {
-    case "branch-select":
-      return <BranchSelector onSelect={handleBranchSelect} />;
-    case "terminal-select":
-      return (
-        <TerminalSelector
-          branch={selectedBranch!}
-          onSelect={handleTerminalSelect}
-          onBack={() => setScreen("branch-select")}
-        />
-      );
-    case "screensaver":
-      return <Screensaver onTouch={() => setScreen("room")} />;
-    case "room":
-      return (
+  return (
+    <>
+      {/* Reset device — gear icon, only visible on screensaver */}
+      {screen === "screensaver" && (
+        <div className="fixed bottom-4 right-4 z-50">
+          {showResetConfirm ? (
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 shadow-lg">
+              <span className="text-sm text-muted-foreground">გარeset?</span>
+              <button
+                onClick={handleResetDevice}
+                className="text-sm font-semibold text-destructive"
+              >
+                დიახ
+              </button>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="text-sm text-muted-foreground"
+              >
+                არა
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground opacity-30 hover:opacity-100 transition-opacity"
+            >
+              <Settings className="h-4 w-4" strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {screen === "screensaver" && <Screensaver onTouch={() => setScreen("room")} />}
+      {screen === "room" && (
         <RoomKeypad
           onConfirm={handleRoomNumber}
           onBack={() => setScreen("screensaver")}
         />
-      );
-    case "otp":
-      return (
+      )}
+      {screen === "otp" && (
         <OtpKeypad
           phoneLastThree={phoneLastThree}
           onConfirm={handleOtp}
           onResend={handleResend}
           onCancel={handleOtpCancel}
         />
-      );
-    case "waiting":
-      return <WaitingScreen packageCount={packageCount} trackingNumbers={trackingNumbers} requestId={requestId} onDone={handleWaitingDone} />;
-  }
+      )}
+      {screen === "waiting" && (
+        <WaitingScreen
+          packageCount={packageCount}
+          trackingNumbers={trackingNumbers}
+          requestId={requestId}
+          onDone={handleWaitingDone}
+        />
+      )}
+    </>
+  );
 }

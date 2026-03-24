@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { CheckCircle2, PackageX } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle2, PackageX, AlertCircle } from "lucide-react";
 
 interface WaitingScreenProps {
   packageCount: number;
@@ -11,6 +11,8 @@ interface WaitingScreenProps {
 }
 
 export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone }: WaitingScreenProps) {
+  const [rejected, setRejected] = useState(false);
+
   useEffect(() => {
     if (packageCount === 0) {
       const t = setTimeout(onDone, 5_000);
@@ -26,6 +28,9 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
         if (data.received) {
           clearInterval(interval);
           onDone();
+        } else if (data.rejected) {
+          clearInterval(interval);
+          setRejected(true);
         }
       } catch {
         // network hiccup — keep polling
@@ -34,6 +39,35 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
 
     return () => clearInterval(interval);
   }, [packageCount, requestId, onDone]);
+
+  // Auto-dismiss rejection screen after 15 seconds
+  useEffect(() => {
+    if (!rejected) return;
+    const t = setTimeout(onDone, 15_000);
+    return () => clearTimeout(t);
+  }, [rejected, onDone]);
+
+  if (rejected) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
+        <div className="relative flex items-center justify-center">
+          <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-destructive/10 blur-[60px]" />
+          <div className="flex h-32 w-32 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10">
+            <AlertCircle className="h-16 w-16 text-destructive" strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <div className="max-w-md space-y-4 text-center">
+          <h1 className="text-3xl font-bold text-foreground">
+            მოთხოვნა უარყოფილია
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            დამატებითი ინფორმაციისთვის გთხოვთ მიმართოთ მოლარეს
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (packageCount === 0) {
     return (

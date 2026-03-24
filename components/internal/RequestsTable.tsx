@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Package, RefreshCw, LogOut, ChevronLeft } from "lucide-react";
+import { CheckCircle2, Package, RefreshCw, LogOut, ChevronLeft, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { PickupRequest } from "@/app/api/internal/requests/route";
@@ -20,6 +20,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   // selectedByRequest: when a key is absent, all packages for that request are selected
   const [selectedByRequest, setSelectedByRequest] = useState<Record<string, string[]>>({});
@@ -29,6 +30,10 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
       const res = await fetch(`/api/internal/requests?branch_id=${branch.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401) {
+        onLogout();
+        return;
+      }
       const data = await res.json();
       setRequests(data.requests ?? []);
       setLastUpdated(new Date());
@@ -37,7 +42,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
     } finally {
       setLoading(false);
     }
-  }, [token, branch.id]);
+  }, [token, branch.id, onLogout]);
 
   useEffect(() => {
     fetchRequests();
@@ -85,6 +90,28 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
     }
   }
 
+  async function handleReject(req: PickupRequest) {
+    setRejectingId(req.id);
+    try {
+      await fetch("/api/internal/reject-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: req.id }),
+      });
+      setRequests((prev) => prev.filter((r) => r.id !== req.id));
+      setSelectedByRequest((prev) => {
+        const next = { ...prev };
+        delete next[req.id];
+        return next;
+      });
+    } finally {
+      setRejectingId(null);
+    }
+  }
+
   function formatTime(iso: string) {
     const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
     if (diff < 1) return "ახლახანს";
@@ -93,17 +120,17 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
   }
 
   return (
-    <div className="flex h-screen w-screen flex-col bg-background">
+    <div className="flex flex-col w-screen h-screen bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-8 py-5">
+      <div className="flex items-center justify-between px-8 py-5 border-b border-border">
         <div className="flex items-center gap-3">
-          <Package className="h-6 w-6 text-primary" strokeWidth={1.5} />
+          <Package className="w-6 h-6 text-primary" strokeWidth={1.5} />
           <h1 className="text-xl font-bold text-foreground">აქტიური მოთხოვნები</h1>
-          <Badge variant="outline" className="text-muted-foreground font-normal">
+          <Badge variant="outline" className="font-normal text-muted-foreground">
             {branch.name}
           </Badge>
           {requests.length > 0 && (
-            <Badge className="bg-primary/15 text-primary border-primary/30 font-semibold">
+            <Badge className="font-semibold bg-primary/15 text-primary border-primary/30">
               {requests.length}
             </Badge>
           )}
@@ -120,7 +147,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
             size="icon"
             className="h-9 w-9 border-border"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="w-4 h-4" />
           </Button>
           <Button
             onClick={onChangeBranch}
@@ -128,7 +155,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
             size="sm"
             className="gap-2 text-muted-foreground hover:text-foreground"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="w-4 h-4" />
             ფილიალი
           </Button>
           <Button
@@ -137,21 +164,21 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
             size="sm"
             className="gap-2 text-muted-foreground hover:text-foreground"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="w-4 h-4" />
             გასვლა
           </Button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto px-8 py-6">
+      <div className="flex-1 px-8 py-6 overflow-auto">
         {loading ? (
-          <div className="flex h-full items-center justify-center">
-            <span className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+          <div className="flex items-center justify-center h-full">
+            <span className="w-8 h-8 border-2 rounded-full animate-spin border-border border-t-primary" />
           </div>
         ) : requests.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-            <CheckCircle2 className="h-16 w-16 text-success/50" strokeWidth={1.5} />
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+            <CheckCircle2 className="w-16 h-16 text-success/50" strokeWidth={1.5} />
             <p className="text-xl font-semibold text-muted-foreground">
               აქტიური მოთხოვნა არ არის
             </p>
@@ -166,7 +193,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
                 {["კლიენტი", "კიოსკი", "ტრეკინგ ნომერი", "ოთახის ნომ.", "დრო", ""].map((h) => (
                   <th
                     key={h}
-                    className="pb-3 text-left text-xs font-medium tracking-wider uppercase text-muted-foreground first:pl-0 last:text-right"
+                    className="pb-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground first:pl-0 last:text-right"
                   >
                     {h}
                   </th>
@@ -180,7 +207,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
                 return (
                   <tr
                     key={req.id}
-                    className="group transition-colors hover:bg-secondary/40"
+                    className="transition-colors group hover:bg-secondary/40"
                   >
                     <td className="py-4 pr-4 text-base font-medium text-foreground">
                       {req.clientName}
@@ -195,13 +222,13 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
                           return (
                             <label
                               key={tn}
-                              className="flex cursor-pointer items-center gap-2 group/tn"
+                              className="flex items-center gap-2 cursor-pointer group/tn"
                             >
                               <input
                                 type="checkbox"
                                 checked={checked}
                                 onChange={() => toggleTracking(req, tn)}
-                                className="h-4 w-4 cursor-pointer accent-primary"
+                                className="w-4 h-4 cursor-pointer accent-primary"
                               />
                               <span
                                 className={`font-mono text-sm transition-colors ${
@@ -224,20 +251,36 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
                       {formatTime(req.createdAt)}
                     </td>
                     <td className="py-4 text-right">
-                      <Button
-                        onClick={() => handleMarkReceived(req)}
-                        disabled={markingId === req.id || noneSelected}
-                        size="sm"
-                        className="gap-2 bg-success/15 text-success border border-success/30 hover:bg-success/25 hover:text-success font-semibold disabled:opacity-40"
-                        variant="ghost"
-                      >
-                        {markingId === req.id ? (
-                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-success/30 border-t-success" />
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4" />
-                        )}
-                        მიღებულია
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          onClick={() => handleReject(req)}
+                          disabled={rejectingId === req.id || markingId === req.id}
+                          size="sm"
+                          className="gap-2 font-semibold border bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20 hover:text-destructive disabled:opacity-40"
+                          variant="ghost"
+                        >
+                          {rejectingId === req.id ? (
+                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-destructive/30 border-t-destructive" />
+                          ) : (
+                            <XCircle className="w-4 h-4" />
+                          )}
+                          უარყოფა
+                        </Button>
+                        <Button
+                          onClick={() => handleMarkReceived(req)}
+                          disabled={markingId === req.id || noneSelected || rejectingId === req.id}
+                          size="sm"
+                          className="gap-2 font-semibold border bg-success/15 text-success border-success/30 hover:bg-success/25 hover:text-success disabled:opacity-40"
+                          variant="ghost"
+                        >
+                          {markingId === req.id ? (
+                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-success/30 border-t-success" />
+                          ) : (
+                            <CheckCircle2 className="w-4 h-4" />
+                          )}
+                          მიღებულია
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );

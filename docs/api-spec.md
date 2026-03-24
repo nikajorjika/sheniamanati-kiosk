@@ -16,13 +16,71 @@ LARAVEL_API_URL=https://your-laravel-app.test
 
 ## Authentication
 
-Internal endpoints require a Bearer token obtained from the login endpoint.
+Internal endpoints require a Bearer token obtained from the **kiosk activation** endpoint.
 
 ```
 Authorization: Bearer <token>
 ```
 
 Client endpoints are public (no auth required), but should be rate-limited by IP/tablet ID on the Laravel side.
+
+---
+
+## Setup Endpoints
+
+### `POST /api/kiosk/activate`
+
+Called once when a manager sets up a new device. Validates the two kiosk codes and returns a session token plus terminal metadata.
+
+**Request:**
+```json
+{
+  "short_code": "TBIL1",
+  "access_code": "aB3xQz9mKpLwRtNv4Yc2Zd8e"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `short_code` | string | Human-readable code assigned by admin in Nova |
+| `access_code` | string | 24-char system-generated code, shown read-only in Nova |
+
+**Response — success:**
+```json
+{
+  "success": true,
+  "token": "<64-char bearer token>",
+  "terminal_id": 5,
+  "terminal_number": "001",
+  "terminal_name": "Front Desk 1",
+  "terminal_type": "front",
+  "branch_id": 2,
+  "branch_name": "თბილისი"
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `token` | string | Bearer token (8h TTL) used for internal API calls |
+| `terminal_id` | integer | DB id of the terminal, used as `tablet_id` in client calls |
+| `terminal_number` | string | 3-digit display number |
+| `terminal_name` | string\|null | Optional display name |
+| `terminal_type` | `"front"` \| `"warehouse"` | Determines which page the device routes to |
+| `branch_id` | integer | Branch the terminal belongs to |
+| `branch_name` | string | Human-readable branch name |
+
+**Response — invalid codes:**
+```json
+{
+  "success": false,
+  "error": "Invalid activation code"
+}
+```
+
+**Notes:**
+- Public endpoint — no auth required
+- On success the kiosk stores all fields in localStorage and routes to `/client` (front) or `/internal` (warehouse)
+- Admin can regenerate `access_code` via Nova action `RegenerateAccessCode`; existing device sessions expire within 8 hours
 
 ---
 

@@ -1,0 +1,25 @@
+import { NextRequest, NextResponse } from "next/server";
+
+const API_URL = process.env.API_URL ?? "http://localhost";
+
+export async function POST(req: NextRequest) {
+  const { id } = await req.json();
+  const authorization = req.headers.get("Authorization") ?? "";
+
+  if (!id) {
+    return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
+  }
+
+  const res = await fetch(`${API_URL}/api/internal/reject-request`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authorization,
+    },
+    body: JSON.stringify({ id }),
+  });
+
+  const data = await res.json();
+
+  return NextResponse.json(data, { status: res.status });
+}

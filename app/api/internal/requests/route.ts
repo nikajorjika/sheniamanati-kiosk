@@ -22,6 +22,11 @@ export async function GET(req: NextRequest) {
     headers: { Authorization: authorization },
   });
 
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: res.statusText }));
+    return NextResponse.json(error, { status: res.status });
+  }
+
   const data = await res.json();
 
   const requests: PickupRequest[] = (data.data ?? []).map(
