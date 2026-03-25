@@ -65,7 +65,7 @@ export function TabletSetup({ onConfirm }: TabletSetupProps) {
       </div>
 
       {/* Keypad */}
-      <NumericKeypad onDigit={handleDigit} onDelete={handleDelete} />
+      <NumericKeypad onDigit={handleDigit} onDelete={handleDelete} onSubmit={handleConfirm} submitDisabled={digits.length < MAX} />
 
       {/* Confirm */}
       <Button

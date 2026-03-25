@@ -12,6 +12,7 @@ interface WaitingScreenProps {
 
 export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone }: WaitingScreenProps) {
   const [rejected, setRejected] = useState(false);
+  const [received, setReceived] = useState(false);
 
   useEffect(() => {
     if (packageCount === 0) {
@@ -27,7 +28,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
         const data = await res.json();
         if (data.received) {
           clearInterval(interval);
-          onDone();
+          setReceived(true);
         } else if (data.rejected) {
           clearInterval(interval);
           setRejected(true);
@@ -39,6 +40,13 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
 
     return () => clearInterval(interval);
   }, [packageCount, requestId, onDone]);
+
+  // Auto-dismiss success screen after showing success message briefly
+  useEffect(() => {
+    if (!received) return;
+    const t = setTimeout(onDone, 3_000);
+    return () => clearTimeout(t);
+  }, [received, onDone]);
 
   // Auto-dismiss rejection screen after 15 seconds
   useEffect(() => {
@@ -91,13 +99,41 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
     );
   }
 
+  // Success message after warehouse marks received
+  if (received) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
+        {/* Success glow + icon */}
+        <div className="relative flex items-center justify-center">
+          <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-success/10 blur-[60px]" />
+          <div className="flex h-32 w-32 items-center justify-center rounded-full border border-success/30 bg-success/10">
+            <CheckCircle2 className="h-16 w-16 text-success" strokeWidth={1.5} />
+          </div>
+        </div>
+
+        {/* Message */}
+        <div className="max-w-sm space-y-3 text-center">
+          <h1 className="text-3xl font-bold text-foreground">
+            ✓ თქვენი მიწოდება მოხდა!
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            თქვენი{" "}
+            <span className="font-bold text-foreground">{packageCount}</span>{" "}
+            {packageCount === 1 ? "ამანათი" : "ამანათი"} მზად არის — გთხოვთ, აიყარეთ
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Waiting screen
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
-      {/* Success glow + icon */}
+      {/* Waiting icon */}
       <div className="relative flex items-center justify-center">
-        <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-success/10 blur-[60px]" />
-        <div className="flex h-32 w-32 items-center justify-center rounded-full border border-success/30 bg-success/10">
-          <CheckCircle2 className="h-16 w-16 text-success" strokeWidth={1.5} />
+        <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-amber-500/10 blur-[60px]" />
+        <div className="flex h-32 w-32 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
+          <CheckCircle2 className="h-16 w-16 text-amber-500" strokeWidth={1.5} />
         </div>
       </div>
 
@@ -132,7 +168,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="h-2.5 w-2.5 animate-pulse rounded-full bg-success/60"
+            className="h-2.5 w-2.5 animate-pulse rounded-full bg-amber-500/60"
             style={{ animationDelay: `${i * 0.3}s` }}
           />
         ))}
