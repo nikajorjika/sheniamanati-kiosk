@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "კიოსკი",
   description: "ამანათების გატანის ტერმინალი",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "კიოსკი",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#d97706",
 };
 
 export default function RootLayout({
