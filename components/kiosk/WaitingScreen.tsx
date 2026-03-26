@@ -13,6 +13,8 @@ interface WaitingScreenProps {
 export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone }: WaitingScreenProps) {
   const [rejected, setRejected] = useState(false);
   const [received, setReceived] = useState(false);
+  const [receivedCount, setReceivedCount] = useState(0);
+  const [receivedTrackingNumbers, setReceivedTrackingNumbers] = useState<string[]>([]);
 
   useEffect(() => {
     if (packageCount === 0) {
@@ -28,6 +30,8 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
         const data = await res.json();
         if (data.received) {
           clearInterval(interval);
+          setReceivedCount(data.received_count ?? 0);
+          setReceivedTrackingNumbers(data.received_tracking_numbers ?? []);
           setReceived(true);
         } else if (data.rejected) {
           clearInterval(interval);
@@ -41,23 +45,23 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
     return () => clearInterval(interval);
   }, [packageCount, requestId, onDone]);
 
-  // Auto-dismiss success screen after showing success message briefly
+  // Auto-dismiss success screen after 20 seconds (or on tap)
   useEffect(() => {
     if (!received) return;
-    const t = setTimeout(onDone, 3_000);
+    const t = setTimeout(onDone, 20_000);
     return () => clearTimeout(t);
   }, [received, onDone]);
 
-  // Auto-dismiss rejection screen after 15 seconds
+  // Auto-dismiss rejection screen after 20 seconds (or on tap)
   useEffect(() => {
     if (!rejected) return;
-    const t = setTimeout(onDone, 15_000);
+    const t = setTimeout(onDone, 20_000);
     return () => clearTimeout(t);
   }, [rejected, onDone]);
 
   if (rejected) {
     return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
+      <div onClick={onDone} onTouchStart={onDone} className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background cursor-pointer">
         <div className="relative flex items-center justify-center">
           <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-destructive/10 blur-[60px]" />
           <div className="flex h-32 w-32 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10">
@@ -102,7 +106,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
   // Success message after warehouse marks received
   if (received) {
     return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
+      <div onClick={onDone} onTouchStart={onDone} className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background cursor-pointer">
         {/* Success glow + icon */}
         <div className="relative flex items-center justify-center">
           <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-success/10 blur-[60px]" />
@@ -118,10 +122,24 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
           </h1>
           <p className="text-xl text-muted-foreground">
             თქვენი{" "}
-            <span className="font-bold text-foreground">{packageCount}</span>{" "}
-            {packageCount === 1 ? "ამანათი" : "ამანათი"} მზად არის — გთხოვთ, აიყარეთ
+            <span className="font-bold text-foreground">{receivedCount}</span>{" "}
+            {receivedCount === 1 ? "ამანათი" : "ამანათი"} მზად არის — გთხოვთ, აიყარეთ
           </p>
         </div>
+
+        {/* Received tracking numbers */}
+        {receivedTrackingNumbers.length > 0 && (
+          <div className="flex flex-col items-center gap-2">
+            {receivedTrackingNumbers.map((tn) => (
+              <span
+                key={tn}
+                className="rounded-lg border border-border bg-card px-4 py-2 font-mono text-sm text-muted-foreground"
+              >
+                {tn}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

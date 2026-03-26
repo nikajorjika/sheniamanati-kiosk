@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Settings } from "lucide-react";
 import { Screensaver } from "@/components/kiosk/Screensaver";
@@ -87,13 +87,13 @@ export default function ClientPortal() {
     return { valid: false, error: data.error };
   }
 
-  function handleWaitingDone() {
+  const handleWaitingDone = useCallback(() => {
     setRoomNumber("");
     setPackageCount(0);
     setTrackingNumbers([]);
     setRequestId(null);
     setScreen("screensaver");
-  }
+  }, []);
 
   if (screen === null) return null;
 
