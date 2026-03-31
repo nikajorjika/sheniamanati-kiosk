@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, ArrowLeft, X } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 import { NumericKeypad } from "@/components/shared/NumericKeypad";
 import { OtpDisplay } from "@/components/shared/OtpDisplay";
 import { KioskShell } from "@/components/kiosk/KioskShell";
@@ -23,7 +23,6 @@ export function RoomKeypad({ terminalTitle, onConfirm, onBack, loading = false }
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // 60s inactivity → go back to screensaver
   useInactivityTimer(INACTIVITY_MS, onBack);
 
   function handleDigit(d: string) {
@@ -49,44 +48,35 @@ export function RoomKeypad({ terminalTitle, onConfirm, onBack, loading = false }
     setSubmitting(true);
     const result = await onConfirm(filled.join(""));
     if (!result.valid) {
-      setError(result.error ?? "nomeri ver moiZebna");
+      setError(result.error ?? "ნომერი ვერ მოიძებნა");
       setDigits([]);
     }
     setSubmitting(false);
   }
 
-  const footer = (
-    <>
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        uKan
-      </button>
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <X className="h-4 w-4" />
-        gaUqmeba
-      </button>
-    </>
+  const cancelButton = (
+    <button
+      onClick={onBack}
+      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+    >
+      <X className="h-4 w-4" />
+      გაუქმება
+    </button>
   );
 
   return (
-    <KioskShell title={terminalTitle} footer={footer}>
-      <div className="flex flex-col items-center justify-between h-full py-8 px-8">
+    <KioskShell title={terminalTitle} headerRight={cancelButton}>
+      <div className="flex flex-col items-center justify-center h-full gap-10 py-8 px-8">
         {/* Heading */}
         <div className="text-center space-y-2">
           <p className="text-sm font-semibold tracking-widest uppercase text-primary">
-            nabiJi 1 / 2
+            ნაბიჯი 1 / 2
           </p>
           <h1
             className="text-3xl font-bold text-foreground"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            ShEiyvanEt othakhis an piradI nomeri
+            შეიყვანეთ ოთახის ან პირადი ნომერი
           </h1>
         </div>
 

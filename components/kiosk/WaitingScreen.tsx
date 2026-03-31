@@ -63,7 +63,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
       <div
         onClick={onDone}
         onTouchStart={onDone}
-        className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background cursor-pointer"
+        className="flex flex-col items-center justify-center w-screen h-screen gap-10 cursor-pointer bg-background"
       >
         <div className="relative flex items-center justify-center">
           <div
@@ -71,10 +71,10 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
             style={{ background: "color-mix(in oklch, var(--color-destructive) 10%, transparent)" }}
           />
           <div
-            className="flex h-32 w-32 items-center justify-center rounded-full bg-destructive-subtle"
+            className="flex items-center justify-center w-32 h-32 rounded-full bg-destructive-subtle"
             style={{ boxShadow: "0 0 40px var(--destructive-glow)" }}
           >
-            <AlertCircle className="h-16 w-16 text-destructive" strokeWidth={1.5} />
+            <AlertCircle className="w-16 h-16 text-destructive" strokeWidth={1.5} />
           </div>
         </div>
         <div className="max-w-md space-y-4 text-center">
@@ -82,10 +82,10 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
             className="text-3xl font-bold text-foreground"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            moTkhovna uarqopilia
+            მოთხოვნა უარყოფილია
           </h1>
           <p className="text-xl text-muted-foreground">
-            damatebiTi inpormaciisaTvis gTxovT mimarToT molarEs
+            დამატებითი ინფორმაციისთვის გთხოვთ მიმართოთ მოლარეს
           </p>
         </div>
       </div>
@@ -94,11 +94,11 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
 
   if (packageCount === 0) {
     return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
+      <div className="flex flex-col items-center justify-center w-screen h-screen gap-10 bg-background">
         <div className="relative flex items-center justify-center">
           <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-muted/40 blur-[60px]" />
-          <div className="flex h-32 w-32 items-center justify-center rounded-full bg-surface-container-highest">
-            <PackageX className="h-16 w-16 text-muted-foreground" strokeWidth={1.5} />
+          <div className="flex items-center justify-center w-32 h-32 rounded-full bg-surface-container-highest">
+            <PackageX className="w-16 h-16 text-muted-foreground" strokeWidth={1.5} />
           </div>
         </div>
         <div className="max-w-sm space-y-3 text-center">
@@ -106,10 +106,10 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
             className="text-3xl font-bold text-foreground"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            amanaTi ar moiZebna
+            ამანათი ვერ მოიძებნა
           </h1>
           <p className="text-xl text-muted-foreground">
-            gadakhdiTi amanaTi ar gakvs — gTxovT, mogvianebiT scadoT
+            გადასახდელი ამანათი არ გაქვს — გთხოვთ, მოგვიანებით სცადოთ
           </p>
         </div>
       </div>
@@ -121,7 +121,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
       <div
         onClick={onDone}
         onTouchStart={onDone}
-        className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background cursor-pointer"
+        className="flex flex-col items-center justify-center w-screen h-screen gap-10 cursor-pointer bg-background"
       >
         <div className="relative flex items-center justify-center">
           <div
@@ -129,10 +129,10 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
             style={{ background: "color-mix(in oklch, var(--color-success) 10%, transparent)" }}
           />
           <div
-            className="flex h-32 w-32 items-center justify-center rounded-full bg-success/10"
+            className="flex items-center justify-center w-32 h-32 rounded-full bg-success/10"
             style={{ boxShadow: "0 0 40px var(--success-glow)" }}
           >
-            <CheckCircle2 className="h-16 w-16 text-success" strokeWidth={1.5} />
+            <CheckCircle2 className="w-16 h-16 text-success" strokeWidth={1.5} />
           </div>
         </div>
         <div className="max-w-sm space-y-3 text-center">
@@ -140,20 +140,20 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
             className="text-3xl font-bold text-foreground"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            ✓ TqvEni miwodeba mokhda!
+            თქვენი ამანათი მზად არის!
           </h1>
           <p className="text-xl text-muted-foreground">
-            TqvEni{" "}
+            თქვენი{" "}
             <span className="font-bold text-foreground">{receivedCount}</span>{" "}
-            amanaTi mzad aris — gTxovT, aiqariT
+            ამანათი მზად არის — გთხოვთ, აიღეთ
           </p>
         </div>
         {receivedTrackingNumbers.length > 0 && (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-row flex-wrap justify-center gap-2">
             {receivedTrackingNumbers.map((tn) => (
               <span
                 key={tn}
-                className="rounded-lg bg-surface-container-highest px-4 py-2 font-mono text-sm text-muted-foreground"
+                className="px-4 py-2 font-mono text-sm rounded-lg bg-surface-container-highest text-muted-foreground"
               >
                 {tn}
               </span>
@@ -166,17 +166,17 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
 
   // ── Waiting state ────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
+    <div className="flex flex-col items-center justify-center w-screen h-screen gap-10 bg-background">
       <div className="relative flex items-center justify-center">
         <div
           className="pointer-events-none absolute h-48 w-48 rounded-full blur-[60px]"
           style={{ background: "color-mix(in oklch, var(--color-primary) 8%, transparent)" }}
         />
         <div
-          className="flex h-32 w-32 items-center justify-center rounded-full bg-secondary-container"
+          className="flex items-center justify-center w-32 h-32 rounded-full bg-secondary-container"
           style={{ boxShadow: "0 0 40px var(--primary-glow)" }}
         >
-          <CheckCircle2 className="h-16 w-16 text-primary" strokeWidth={1.5} />
+          <CheckCircle2 className="w-16 h-16 text-primary" strokeWidth={1.5} />
         </div>
       </div>
 
@@ -185,21 +185,21 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
           className="text-3xl font-bold text-foreground"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          moTkhovna miGebuli
+          მოთხოვნა მიღებულია
         </h1>
         <p className="text-xl text-muted-foreground">
-          TqvEni{" "}
+          თქვენი{" "}
           <span className="font-bold text-foreground">{packageCount}</span>{" "}
-          amanaTi mzdadeba — gTxovT, daicadoT
+          ამანათი მზადდება — გთხოვთ, დაიცადეთ
         </p>
       </div>
 
       {trackingNumbers.length > 0 && (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-row flex-wrap justify-center gap-2">
           {trackingNumbers.map((tn) => (
             <span
               key={tn}
-              className="rounded-lg bg-surface-container-highest px-4 py-2 font-mono text-sm text-muted-foreground"
+              className="px-4 py-2 font-mono text-sm rounded-lg bg-surface-container-highest text-muted-foreground"
             >
               {tn}
             </span>

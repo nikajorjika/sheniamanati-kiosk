@@ -107,10 +107,10 @@ export default function ClientPortal() {
     <>
       {/* Reset device — gear icon, only visible on screensaver */}
       {screen === "screensaver" && (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed z-50 bottom-4 right-4">
           {showResetConfirm ? (
             <div className="flex items-center gap-2 rounded-xl bg-surface-container-lowest px-4 py-2 shadow-[0_4px_20px_var(--primary-glow)]">
-              <span className="text-sm text-muted-foreground">გარeset?</span>
+              <span className="text-sm text-muted-foreground">დაარესეტეთ?</span>
               <button
                 onClick={handleResetDevice}
                 className="text-sm font-semibold text-destructive"
@@ -127,9 +127,9 @@ export default function ClientPortal() {
           ) : (
             <button
               onClick={() => setShowResetConfirm(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-lowest text-muted-foreground opacity-30 hover:opacity-100 transition-opacity shadow-sm"
+              className="flex items-center justify-center w-10 h-10 transition-opacity shadow-sm rounded-xl bg-surface-container-lowest text-muted-foreground opacity-30 hover:opacity-100"
             >
-              <Settings className="h-4 w-4" strokeWidth={1.5} />
+              <Settings className="w-4 h-4" strokeWidth={1.5} />
             </button>
           )}
         </div>

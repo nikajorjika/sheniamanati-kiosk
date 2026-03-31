@@ -35,7 +35,7 @@ export function OtpDisplay({
               // Filled: primary_container bg + on_primary_container text
               !error && filled && "bg-primary-container text-primary-container-foreground",
               // Active cursor: surface_bright, animated
-              !error && isActive && !filled && "bg-surface-bright animate-pulse text-foreground",
+              !error && isActive && !filled && "bg-primary/10 animate-pulse text-foreground",
               // Empty default: surface_container_highest
               !error && !filled && !isActive && "bg-surface-container-highest text-muted-foreground",
             )}

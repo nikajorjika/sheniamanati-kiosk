@@ -9,7 +9,7 @@ interface ScreensaverProps {
 export function Screensaver({ onTouch }: ScreensaverProps) {
   return (
     <div
-      className="relative flex h-screen w-screen cursor-pointer flex-col items-center justify-center gap-10 select-none bg-background"
+      className="relative flex flex-col items-center justify-center w-screen h-screen gap-10 cursor-pointer select-none bg-background"
       onClick={onTouch}
       onTouchStart={onTouch}
     >
@@ -22,7 +22,7 @@ export function Screensaver({ onTouch }: ScreensaverProps) {
       {/* Logo mark */}
       <div className="relative flex flex-col items-center gap-6">
         <div
-          className="flex h-28 w-28 items-center justify-center rounded-2xl bg-surface-container-lowest"
+          className="flex items-center justify-center h-28 w-28 rounded-2xl bg-surface-container-lowest"
           style={{ boxShadow: "0 0 48px var(--primary-glow)" }}
         >
           <Package className="h-14 w-14 text-primary" strokeWidth={1.5} />
@@ -33,16 +33,16 @@ export function Screensaver({ onTouch }: ScreensaverProps) {
             className="text-5xl font-bold tracking-tight text-foreground"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            ამananatchegis gaTana
+            ამანათის გატანა
           </span>
-          <span className="text-sm font-medium tracking-[0.25em] uppercase text-muted-foreground">
-            gamoitanEt amanaTi
+          <span className="text-sm font-medium uppercase text-muted-foreground">
+            შეიყვანეთ ოთახის ან პირადი ნომერი და მიიღეთ თქვენი ამანათი
           </span>
         </div>
       </div>
 
       {/* Tap prompt */}
-      <div className="absolute bottom-14 flex flex-col items-center gap-3">
+      <div className="absolute flex flex-col items-center gap-3 bottom-14">
         <div className="flex gap-2">
           {[0, 1, 2].map((i) => (
             <span
@@ -53,16 +53,16 @@ export function Screensaver({ onTouch }: ScreensaverProps) {
           ))}
         </div>
         <span className="text-lg text-muted-foreground">
-          sheekhEt eQrans gasagrZelEblad
+          შეეხეთ ეკრანს გასაგრძელებლად
         </span>
       </div>
 
       {/* Corner accents */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-7 left-7 h-9 w-9 rounded-tl-md border-t-2 border-l-2 border-outline-variant/40" />
-        <div className="absolute top-7 right-7 h-9 w-9 rounded-tr-md border-t-2 border-r-2 border-outline-variant/40" />
-        <div className="absolute bottom-7 left-7 h-9 w-9 rounded-bl-md border-b-2 border-l-2 border-outline-variant/40" />
-        <div className="absolute bottom-7 right-7 h-9 w-9 rounded-br-md border-b-2 border-r-2 border-outline-variant/40" />
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute border-t-2 border-l-2 top-7 left-7 h-9 w-9 rounded-tl-md border-outline-variant/40" />
+        <div className="absolute border-t-2 border-r-2 top-7 right-7 h-9 w-9 rounded-tr-md border-outline-variant/40" />
+        <div className="absolute border-b-2 border-l-2 bottom-7 left-7 h-9 w-9 rounded-bl-md border-outline-variant/40" />
+        <div className="absolute border-b-2 border-r-2 bottom-7 right-7 h-9 w-9 rounded-br-md border-outline-variant/40" />
       </div>
     </div>
   );
