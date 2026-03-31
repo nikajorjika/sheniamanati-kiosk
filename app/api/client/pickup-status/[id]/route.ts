@@ -13,6 +13,7 @@ export async function GET(
     return NextResponse.json({
       received: data.received ?? false,
       rejected: data.rejected ?? false,
+      cancelled: data.cancelled ?? false,
       received_count: data.received_count ?? null,
       received_tracking_numbers: data.received_tracking_numbers ?? null,
       marked_by_terminal_id: data.marked_by_terminal_id ?? null,

@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, PackageX, AlertCircle } from "lucide-react";
+import { CheckCircle2, PackageX, AlertCircle, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+// After this many ms without fulfillment, show the cancel button
+const CANCEL_AFTER_MS = 10 * 60 * 1000; // 10 minutes
 
 interface WaitingScreenProps {
   packageCount: number;
@@ -10,12 +14,21 @@ interface WaitingScreenProps {
   onDone: () => void;
 }
 
-export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone }: WaitingScreenProps) {
+export function WaitingScreen({
+  packageCount,
+  trackingNumbers,
+  requestId,
+  onDone,
+}: WaitingScreenProps) {
   const [rejected, setRejected] = useState(false);
   const [received, setReceived] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
   const [receivedCount, setReceivedCount] = useState(0);
   const [receivedTrackingNumbers, setReceivedTrackingNumbers] = useState<string[]>([]);
+  const [showCancel, setShowCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
+  // Poll for status updates
   useEffect(() => {
     if (packageCount === 0) {
       const t = setTimeout(onDone, 5_000);
@@ -36,6 +49,9 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
         } else if (data.rejected) {
           clearInterval(interval);
           setRejected(true);
+        } else if (data.cancelled) {
+          clearInterval(interval);
+          setCancelled(true);
         }
       } catch {
         // network hiccup — keep polling
@@ -45,7 +61,14 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
     return () => clearInterval(interval);
   }, [packageCount, requestId, onDone]);
 
-  // Auto-dismiss success/rejection after 20 seconds
+  // Show cancel button after timeout
+  useEffect(() => {
+    if (!requestId || packageCount === 0) return;
+    const t = setTimeout(() => setShowCancel(true), CANCEL_AFTER_MS);
+    return () => clearTimeout(t);
+  }, [requestId, packageCount]);
+
+  // Auto-dismiss terminal states after 20 seconds
   useEffect(() => {
     if (!received) return;
     const t = setTimeout(onDone, 20_000);
@@ -57,6 +80,23 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
     const t = setTimeout(onDone, 20_000);
     return () => clearTimeout(t);
   }, [rejected, onDone]);
+
+  useEffect(() => {
+    if (!cancelled) return;
+    const t = setTimeout(onDone, 10_000);
+    return () => clearTimeout(t);
+  }, [cancelled, onDone]);
+
+  async function handleCancel() {
+    if (!requestId || cancelling) return;
+    setCancelling(true);
+    try {
+      await fetch(`/api/client/cancel-request/${requestId}`, { method: "POST" });
+    } catch {
+      // even on network error — treat as cancelled locally
+    }
+    setCancelled(true);
+  }
 
   if (rejected) {
     return (
@@ -78,14 +118,39 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
           </div>
         </div>
         <div className="max-w-md space-y-4 text-center">
-          <h1
-            className="text-3xl font-bold text-foreground"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
+          <h1 className="text-3xl font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>
             მოთხოვნა უარყოფილია
           </h1>
           <p className="text-xl text-muted-foreground">
             დამატებითი ინფორმაციისთვის გთხოვთ მიმართოთ მოლარეს
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (cancelled) {
+    return (
+      <div
+        onClick={onDone}
+        onTouchStart={onDone}
+        className="flex flex-col items-center justify-center w-screen h-screen gap-10 cursor-pointer bg-background"
+      >
+        <div className="relative flex items-center justify-center">
+          <div
+            className="pointer-events-none absolute h-48 w-48 rounded-full blur-[60px]"
+            style={{ background: "color-mix(in oklch, var(--color-muted-foreground) 10%, transparent)" }}
+          />
+          <div className="flex items-center justify-center w-32 h-32 rounded-full bg-muted">
+            <XCircle className="w-16 h-16 text-muted-foreground" strokeWidth={1.5} />
+          </div>
+        </div>
+        <div className="max-w-md space-y-4 text-center">
+          <h1 className="text-3xl font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>
+            მოთხოვნა გაუქმდა
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            თქვენი მოთხოვნა გაუქმებულია. საჭიროების შემთხვევაში სცადეთ ხელახლა.
           </p>
         </div>
       </div>
@@ -102,10 +167,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
           </div>
         </div>
         <div className="max-w-sm space-y-3 text-center">
-          <h1
-            className="text-3xl font-bold text-foreground"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
+          <h1 className="text-3xl font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>
             ამანათი ვერ მოიძებნა
           </h1>
           <p className="text-xl text-muted-foreground">
@@ -136,10 +198,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
           </div>
         </div>
         <div className="max-w-sm space-y-3 text-center">
-          <h1
-            className="text-3xl font-bold text-foreground"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
+          <h1 className="text-3xl font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>
             თქვენი ამანათი მზად არის!
           </h1>
           <p className="text-xl text-muted-foreground">
@@ -151,10 +210,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
         {receivedTrackingNumbers.length > 0 && (
           <div className="flex flex-row flex-wrap justify-center gap-2">
             {receivedTrackingNumbers.map((tn) => (
-              <span
-                key={tn}
-                className="px-4 py-2 font-mono text-sm rounded-lg bg-surface-container-highest text-muted-foreground"
-              >
+              <span key={tn} className="px-4 py-2 font-mono text-sm rounded-lg bg-surface-container-highest text-muted-foreground">
                 {tn}
               </span>
             ))}
@@ -164,7 +220,7 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
     );
   }
 
-  // ── Waiting state ────────────────────────────────────────────────────────
+  // ── Waiting state ──────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col items-center justify-center w-screen h-screen gap-10 bg-background">
       <div className="relative flex items-center justify-center">
@@ -181,26 +237,20 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
       </div>
 
       <div className="max-w-sm space-y-3 text-center">
-        <h1
-          className="text-3xl font-bold text-foreground"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
+        <h1 className="text-3xl font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>
           მოთხოვნა მიღებულია
         </h1>
         <p className="text-xl text-muted-foreground">
           თქვენი{" "}
           <span className="font-bold text-foreground">{packageCount}</span>{" "}
-          ამანათი მზადდება — გთხოვთ, დაიცადეთ
+          ამანათი მზადდება. გთხოვთ, დაიცადოთ და არ დატოვოთ კიოსკი
         </p>
       </div>
 
       {trackingNumbers.length > 0 && (
         <div className="flex flex-row flex-wrap justify-center gap-2">
           {trackingNumbers.map((tn) => (
-            <span
-              key={tn}
-              className="px-4 py-2 font-mono text-sm rounded-lg bg-surface-container-highest text-muted-foreground"
-            >
+            <span key={tn} className="px-4 py-2 font-mono text-sm rounded-lg bg-surface-container-highest text-muted-foreground">
               {tn}
             </span>
           ))}
@@ -216,6 +266,17 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
           />
         ))}
       </div>
+
+      {showCancel && (
+        <Button
+          variant="outline"
+          onClick={handleCancel}
+          disabled={cancelling}
+          className="mt-2 text-destructive border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
+        >
+          {cancelling ? "გაუქმება..." : "მოთხოვნის გაუქმება"}
+        </Button>
+      )}
     </div>
   );
 }
