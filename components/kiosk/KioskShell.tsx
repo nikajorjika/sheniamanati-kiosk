@@ -42,7 +42,7 @@ export function KioskShell({
       >
         {/* Left — app name */}
         <span className="text-sm font-semibold text-foreground select-none whitespace-nowrap">
-          ტვირთების მართვა
+          Sheniamanati.ge
         </span>
 
         {/* Center — branch / terminal name */}
