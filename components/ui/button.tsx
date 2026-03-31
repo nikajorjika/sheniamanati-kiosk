@@ -25,6 +25,10 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        // Kiosk touch sizes — minimum 56–64 px tap targets for tablet use
+        kiosk: "h-16 rounded-2xl px-8 text-xl font-semibold has-[>svg]:px-6 [&_svg:not([class*='size-'])]:size-6",
+        "kiosk-sm": "h-14 rounded-xl px-6 text-lg font-semibold has-[>svg]:px-4 [&_svg:not([class*='size-'])]:size-5",
+        "icon-kiosk": "size-16 rounded-2xl [&_svg:not([class*='size-'])]:size-7",
         icon: "size-9",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
