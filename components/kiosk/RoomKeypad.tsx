@@ -12,7 +12,7 @@ interface RoomKeypadProps {
   loading?: boolean;
 }
 
-const MAX_LENGTH = 6;
+const MAX_LENGTH = 11;
 const MIN_LENGTH = 1;
 const INACTIVITY_MS = 60_000;
 
@@ -47,7 +47,7 @@ export function RoomKeypad({ onConfirm, onBack, loading = false }: RoomKeypadPro
     setSubmitting(true);
     const result = await onConfirm(filled.join(""));
     if (!result.valid) {
-      setError(result.error ?? "ოთახის ნომერი ვერ მოიძებნა");
+      setError(result.error ?? "ნომერი ვერ მოიძებნა");
       setDigits([]);
     }
     setSubmitting(false);
@@ -73,7 +73,7 @@ export function RoomKeypad({ onConfirm, onBack, loading = false }: RoomKeypadPro
             ნაბიჯი 1 / 2
           </p>
           <h1 className="text-3xl font-bold text-foreground">
-            შეიყვანეთ ოთახის ნომერი
+            შეიყვანეთ ოთახის ან პირადი ნომერი
           </h1>
         </div>
 
