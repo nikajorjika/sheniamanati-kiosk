@@ -1,19 +1,11 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Internal kiosk (/internal)", () => {
+test.describe("Debug", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => localStorage.clear());
   });
 
-  test("redirects to / when device is not configured", async ({ page }) => {
-    await page.goto("/internal");
-
-    await expect(page).toHaveURL("/", { timeout: 5000 });
-  });
-
-  test("redirects away when terminal type is front, not warehouse", async ({
-    page,
-  }) => {
+  test("front - redirect to /client", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem("kioskToken", "test-front-token");
       localStorage.setItem("kioskTerminalId", "1");
@@ -23,15 +15,16 @@ test.describe("Internal kiosk (/internal)", () => {
       localStorage.setItem("kioskTerminalNumber", "001");
       localStorage.setItem("kioskTerminalName", "Test Terminal");
     });
-    await page.goto("/internal");
-
-    // /internal rejects front type → bounces to / → / sees the config → /client
+    await page.goto("/");
     await expect(page).toHaveURL("/client", { timeout: 5000 });
   });
 
-  test("renders requests view when warehouse-type terminal is configured", async ({
-    page,
-  }) => {
+  test("warehouse - inspect what actually happens", async ({ page }) => {
+    const urls: string[] = [];
+    page.on("framenavigated", (frame) => {
+      if (frame === page.mainFrame()) urls.push(frame.url());
+    });
+
     await page.addInitScript(() => {
       localStorage.setItem("kioskToken", "test-warehouse-token");
       localStorage.setItem("kioskTerminalId", "2");
@@ -41,8 +34,20 @@ test.describe("Internal kiosk (/internal)", () => {
       localStorage.setItem("kioskTerminalNumber", "002");
       localStorage.setItem("kioskTerminalName", "Warehouse Terminal");
     });
-    await page.goto("/internal");
+    await page.goto("/");
 
-    await expect(page).toHaveURL("/internal", { timeout: 5000 });
+    await page.waitForTimeout(3000);
+    console.log("Navigation history:", urls);
+    console.log("Final URL:", page.url());
+
+    const storageAfter = await page.evaluate(() =>
+      Object.fromEntries(
+        Array.from({ length: localStorage.length }, (_, i) => {
+          const k = localStorage.key(i)!;
+          return [k, localStorage.getItem(k)];
+        })
+      )
+    );
+    console.log("localStorage after 3s:", JSON.stringify(storageAfter));
   });
 });

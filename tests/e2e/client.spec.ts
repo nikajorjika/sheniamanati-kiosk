@@ -2,8 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Client kiosk (/client)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
-    await page.evaluate(() => localStorage.clear());
+    await page.addInitScript(() => localStorage.clear());
   });
 
   test("redirects to / when device is not configured", async ({ page }) => {
@@ -15,7 +14,7 @@ test.describe("Client kiosk (/client)", () => {
   test("redirects away when terminal type is warehouse, not front", async ({
     page,
   }) => {
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       localStorage.setItem("kioskToken", "test-warehouse-token");
       localStorage.setItem("kioskTerminalId", "2");
       localStorage.setItem("kioskTerminalType", "warehouse");
@@ -26,14 +25,14 @@ test.describe("Client kiosk (/client)", () => {
     });
     await page.goto("/client");
 
-    // /client rejects the warehouse-type terminal → bounces to / → / sees the config → /internal
+    // /client rejects warehouse type → bounces to / → / sees the config → /internal
     await expect(page).toHaveURL("/internal", { timeout: 5000 });
   });
 
   test("renders screensaver when front-type terminal is configured", async ({
     page,
   }) => {
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       localStorage.setItem("kioskToken", "test-front-token");
       localStorage.setItem("kioskTerminalId", "1");
       localStorage.setItem("kioskTerminalType", "front");
@@ -44,7 +43,6 @@ test.describe("Client kiosk (/client)", () => {
     });
     await page.goto("/client");
 
-    // Screensaver is the initial screen — URL should not redirect away
     await expect(page).toHaveURL("/client", { timeout: 5000 });
   });
 });
