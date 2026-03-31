@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Package, RefreshCw, LogOut, ChevronLeft, XCircle } from "lucide-react";
+import { CheckCircle2, Package, RefreshCw, LogOut, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { PickupRequest } from "@/app/api/internal/requests/route";
@@ -10,13 +10,12 @@ import type { Branch } from "@/components/kiosk/BranchSelector";
 interface RequestsTableProps {
   token: string;
   branch: Branch;
-  onChangeBranch: () => void;
   onLogout: () => void;
 }
 
 const POLL_INTERVAL = 10_000; // 10 seconds
 
-export function RequestsTable({ token, branch, onChangeBranch, onLogout }: RequestsTableProps) {
+export function RequestsTable({ token, branch, onLogout }: RequestsTableProps) {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingId, setMarkingId] = useState<string | null>(null);
@@ -122,7 +121,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
   return (
     <div className="flex flex-col w-screen h-screen bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-card shadow-sm shadow-foreground/5">
+      <div className="flex items-center justify-between px-8 py-5 border-b shadow-sm border-border bg-card shadow-foreground/5">
         <div className="flex items-center gap-3">
           <Package className="w-6 h-6 text-primary" strokeWidth={1.5} />
           <h1 className="text-xl font-bold text-foreground">აქტიური მოთხოვნები</h1>
@@ -148,15 +147,6 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
             className="h-9 w-9 border-border"
           >
             <RefreshCw className="w-4 h-4" />
-          </Button>
-          <Button
-            onClick={onChangeBranch}
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-muted-foreground hover:text-foreground"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            ფილიალი
           </Button>
           <Button
             onClick={onLogout}
@@ -187,14 +177,14 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
             </p>
           </div>
         ) : (
-          <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm shadow-foreground/5">
+          <div className="overflow-hidden border shadow-sm bg-card rounded-2xl border-border shadow-foreground/5">
             <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-border">
                 {["კლიენტი", "კიოსკი", "ტრეკინგ ნომერი", "ოთახის ნომ.", "დრო", ""].map((h) => (
                   <th
                     key={h}
-                    className="pb-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground first:pl-0 last:text-right"
+                    className="py-4 px-4 first:pl-6 last:pr-6 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground last:text-right"
                   >
                     {h}
                   </th>
@@ -210,7 +200,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
                     key={req.id}
                     className="transition-colors group hover:bg-secondary/40"
                   >
-                    <td className="py-4 pr-4 text-base font-medium text-foreground">
+                    <td className="py-4 pl-6 pr-4 text-base font-medium text-foreground">
                       {req.clientName}
                     </td>
                     <td className="py-4 pr-4 font-mono text-sm font-semibold text-primary">
@@ -251,7 +241,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
                     <td className="py-4 pr-4 text-sm text-muted-foreground">
                       {formatTime(req.createdAt)}
                     </td>
-                    <td className="py-4 text-right">
+                    <td className="py-4 pl-4 pr-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           onClick={() => handleReject(req)}

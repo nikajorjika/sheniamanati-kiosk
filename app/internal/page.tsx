@@ -32,7 +32,6 @@ export default function InternalApp() {
     <RequestsTable
       token={token}
       branch={branch}
-      onChangeBranch={handleLogout}
       onLogout={handleLogout}
     />
   );
