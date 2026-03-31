@@ -27,23 +27,13 @@ export function OtpDisplay({
           <div
             key={i}
             className={cn(
-              // Spec: tonal slots — depth by bg shift, no border-2 (No-Line Rule)
-              "flex items-center justify-center rounded-xl font-mono font-bold transition-all duration-150",
+              "flex items-center justify-center font-mono font-bold transition-all duration-150 border-b-2",
               compact ? "h-14 w-10 text-xl" : "h-20 w-14 text-3xl",
-              // Error: ghost ring as accessibility fallback (spec allows outline_variant/15)
-              error && "ring-1 ring-destructive/30 bg-destructive-subtle text-destructive",
-              // Filled: primary_container bg + on_primary_container text
-              !error && filled && "bg-primary-container text-primary-container-foreground",
-              // Active cursor: surface_bright, animated
-              !error && isActive && !filled && "bg-primary/10 animate-pulse text-foreground",
-              // Empty default: surface_container_highest
-              !error && !filled && !isActive && "bg-surface-container-highest text-muted-foreground",
+              error && "border-destructive text-destructive",
+              !error && filled && "border-primary text-foreground",
+              !error && isActive && !filled && "border-primary animate-pulse",
+              !error && !filled && !isActive && "border-border text-muted-foreground",
             )}
-            style={
-              !error && filled
-                ? { boxShadow: "0 0 16px var(--primary-glow-sm)" }
-                : undefined
-            }
           >
             {filled ? digits[i] : ""}
           </div>
