@@ -29,17 +29,13 @@ export function NumericKeypad({
       {ROWS.map((row) => (
         <div key={row.join("")} className="grid grid-cols-3 gap-3">
           {row.map((digit) => (
-            <KeyButton
-              key={digit}
-              disabled={disabled}
-              onClick={() => onDigit(digit)}
-            >
+            <KeyButton key={digit} disabled={disabled} onClick={() => onDigit(digit)}>
               {digit}
             </KeyButton>
           ))}
         </div>
       ))}
-      {/* Bottom row: delete, 0, submit */}
+      {/* Bottom row: delete · 0 · submit */}
       <div className="grid grid-cols-3 gap-3">
         <KeyButton
           disabled={disabled}
@@ -54,7 +50,7 @@ export function NumericKeypad({
         <KeyButton
           disabled={disabled || submitDisabled}
           onClick={onSubmit}
-          className="text-primary border-primary/30 bg-primary/5 hover:bg-primary/15"
+          className="bg-primary-gradient text-primary-foreground hover:brightness-110 active:brightness-95"
         >
           <ArrowRight className="h-6 w-6" />
         </KeyButton>
@@ -80,13 +76,15 @@ function KeyButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex h-20 w-full items-center justify-center rounded-xl border border-border bg-card",
-        "text-2xl font-semibold text-foreground",
+        // Spec: 80dp × 80dp keys, surface_container_lowest bg, xl rounded, no border
+        "flex h-20 w-full items-center justify-center rounded-2xl bg-surface-container-lowest",
+        "text-3xl font-bold text-foreground",
         "transition-all duration-75",
-        "active:scale-95 active:bg-primary/10 active:border-primary/50",
-        "hover:bg-secondary hover:border-border",
+        "active:scale-95 active:bg-surface-container",
+        "hover:bg-surface-container-low",
         "disabled:opacity-40 disabled:pointer-events-none",
         "touch-manipulation",
+        "shadow-sm",
         className
       )}
     >

@@ -122,7 +122,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
   return (
     <div className="flex flex-col w-screen h-screen bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-5 border-b border-border">
+      <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-card shadow-sm shadow-foreground/5">
         <div className="flex items-center gap-3">
           <Package className="w-6 h-6 text-primary" strokeWidth={1.5} />
           <h1 className="text-xl font-bold text-foreground">აქტიური მოთხოვნები</h1>
@@ -187,7 +187,8 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
             </p>
           </div>
         ) : (
-          <table className="w-full border-collapse">
+          <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm shadow-foreground/5">
+            <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-border">
                 {["კლიენტი", "კიოსკი", "ტრეკინგ ნომერი", "ოთახის ნომ.", "დრო", ""].map((h) => (
@@ -287,6 +288,7 @@ export function RequestsTable({ token, branch, onChangeBranch, onLogout }: Reque
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

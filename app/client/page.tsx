@@ -15,6 +15,7 @@ export default function ClientPortal() {
   const router = useRouter();
   const [screen, setScreen] = useState<ClientScreen | null>(null);
   const [tabletId, setTabletId] = useState<string | null>(null);
+  const [terminalTitle, setTerminalTitle] = useState<string>("");
   const [phoneLastThree, setPhoneLastThree] = useState("00");
   const [roomNumber, setRoomNumber] = useState("");
   const [packageCount, setPackageCount] = useState(0);
@@ -29,6 +30,11 @@ export default function ClientPortal() {
       return;
     }
     setTabletId(String(config.terminalId));
+    setTerminalTitle(
+      config.terminalName
+        ? `${config.branchName} — ${config.terminalName}`
+        : `${config.branchName} — #${config.terminalNumber}`
+    );
     setScreen("screensaver");
   }, [router]);
 
@@ -103,7 +109,7 @@ export default function ClientPortal() {
       {screen === "screensaver" && (
         <div className="fixed bottom-4 right-4 z-50">
           {showResetConfirm ? (
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 shadow-lg">
+            <div className="flex items-center gap-2 rounded-xl bg-surface-container-lowest px-4 py-2 shadow-[0_4px_20px_var(--primary-glow)]">
               <span className="text-sm text-muted-foreground">გარeset?</span>
               <button
                 onClick={handleResetDevice}
@@ -121,7 +127,7 @@ export default function ClientPortal() {
           ) : (
             <button
               onClick={() => setShowResetConfirm(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground opacity-30 hover:opacity-100 transition-opacity"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-lowest text-muted-foreground opacity-30 hover:opacity-100 transition-opacity shadow-sm"
             >
               <Settings className="h-4 w-4" strokeWidth={1.5} />
             </button>
@@ -132,12 +138,14 @@ export default function ClientPortal() {
       {screen === "screensaver" && <Screensaver onTouch={() => setScreen("room")} />}
       {screen === "room" && (
         <RoomKeypad
+          terminalTitle={terminalTitle}
           onConfirm={handleRoomNumber}
           onBack={() => setScreen("screensaver")}
         />
       )}
       {screen === "otp" && (
         <OtpKeypad
+          terminalTitle={terminalTitle}
           phoneLastThree={phoneLastThree}
           onConfirm={handleOtp}
           onResend={handleResend}

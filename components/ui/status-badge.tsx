@@ -14,11 +14,11 @@ const statusBadgeVariants = cva(
     variants: {
       status: {
         // PickupRequest
-        pending:  "bg-primary/15 text-primary border border-primary/30",
-        received: "bg-success/15 text-success border border-success/30",
-        rejected: "bg-destructive/15 text-destructive border border-destructive/30",
-        // Package (arrived = not yet picked up, maps to amber like pending)
-        arrived:  "bg-primary/15 text-primary border border-primary/30",
+        // Ghost rings per spec (outline_variant/15 fallback, not solid borders)
+        pending:  "bg-primary/10 text-primary ring-1 ring-primary/20",
+        received: "bg-success/10 text-success ring-1 ring-success/20",
+        rejected: "bg-destructive/10 text-destructive ring-1 ring-destructive/20",
+        arrived:  "bg-primary/10 text-primary ring-1 ring-primary/20",
       },
     },
     defaultVariants: {

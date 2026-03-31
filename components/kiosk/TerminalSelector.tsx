@@ -66,7 +66,7 @@ export function TerminalSelector({ branch, onSelect, onBack }: TerminalSelectorP
             <button
               key={terminal.id}
               onClick={() => onSelect(terminal)}
-              className="flex items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-5 text-lg font-semibold text-foreground transition-all touch-manipulation active:scale-95 active:bg-primary/10 active:border-primary/50 hover:bg-secondary"
+              className="flex items-center justify-center gap-3 rounded-xl bg-surface-container-lowest px-6 py-5 text-lg font-semibold text-foreground transition-all touch-manipulation active:scale-95 active:bg-surface-container hover:bg-surface-container-low shadow-sm"
             >
               <span className="font-mono text-2xl">{terminal.number}</span>
               {terminal.name && (

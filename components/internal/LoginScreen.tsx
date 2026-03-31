@@ -82,7 +82,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <Button
             type="submit"
             disabled={!username || !password || loading}
-            className="w-full h-12 text-base font-semibold rounded-xl bg-primary text-primary-foreground disabled:opacity-30"
+            className="w-full h-12 text-base font-semibold rounded-xl disabled:opacity-30"
           >
             {loading ? (
               <span className="flex items-center gap-2">

@@ -49,7 +49,7 @@ export function BranchSelector({ onSelect }: BranchSelectorProps) {
             <button
               key={branch.id}
               onClick={() => onSelect(branch)}
-              className="flex items-center justify-center rounded-xl border border-border bg-card px-6 py-5 text-lg font-semibold text-foreground transition-all touch-manipulation active:scale-95 active:bg-primary/10 active:border-primary/50 hover:bg-secondary"
+              className="flex items-center justify-center rounded-xl bg-surface-container-lowest px-6 py-5 text-lg font-semibold text-foreground transition-all touch-manipulation active:scale-95 active:bg-surface-container hover:bg-surface-container-low shadow-sm"
             >
               {branch.name}
             </button>

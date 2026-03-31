@@ -27,15 +27,23 @@ export function OtpDisplay({
           <div
             key={i}
             className={cn(
-              "flex items-center justify-center rounded-xl border-2 font-mono font-bold transition-all duration-150",
+              // Spec: tonal slots — depth by bg shift, no border-2 (No-Line Rule)
+              "flex items-center justify-center rounded-xl font-mono font-bold transition-all duration-150",
               compact ? "h-14 w-10 text-xl" : "h-20 w-14 text-3xl",
-              // Error state
-              error && "border-destructive bg-destructive/10 text-destructive",
-              // Normal states (only when not error)
-              !error && filled && "border-primary bg-primary/10 text-primary shadow-[0_0_16px_oklch(0.78_0.19_55/0.25)]",
-              !error && isActive && !filled && "border-primary animate-pulse bg-card text-foreground",
-              !error && !filled && !isActive && "border-border bg-card text-foreground",
+              // Error: ghost ring as accessibility fallback (spec allows outline_variant/15)
+              error && "ring-1 ring-destructive/30 bg-destructive-subtle text-destructive",
+              // Filled: primary_container bg + on_primary_container text
+              !error && filled && "bg-primary-container text-primary-container-foreground",
+              // Active cursor: surface_bright, animated
+              !error && isActive && !filled && "bg-surface-bright animate-pulse text-foreground",
+              // Empty default: surface_container_highest
+              !error && !filled && !isActive && "bg-surface-container-highest text-muted-foreground",
             )}
+            style={
+              !error && filled
+                ? { boxShadow: "0 0 16px var(--primary-glow-sm)" }
+                : undefined
+            }
           >
             {filled ? digits[i] : ""}
           </div>

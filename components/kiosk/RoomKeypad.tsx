@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, X } from "lucide-react";
 import { NumericKeypad } from "@/components/shared/NumericKeypad";
 import { OtpDisplay } from "@/components/shared/OtpDisplay";
+import { KioskShell } from "@/components/kiosk/KioskShell";
 import { useInactivityTimer } from "@/hooks/useInactivityTimer";
 
 interface RoomKeypadProps {
+  terminalTitle?: string;
   onConfirm: (roomNumber: string) => Promise<{ valid: boolean; error?: string }>;
   onBack: () => void;
   loading?: boolean;
@@ -16,7 +18,7 @@ const MAX_LENGTH = 11;
 const MIN_LENGTH = 1;
 const INACTIVITY_MS = 60_000;
 
-export function RoomKeypad({ onConfirm, onBack, loading = false }: RoomKeypadProps) {
+export function RoomKeypad({ terminalTitle, onConfirm, onBack, loading = false }: RoomKeypadProps) {
   const [digits, setDigits] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -47,59 +49,72 @@ export function RoomKeypad({ onConfirm, onBack, loading = false }: RoomKeypadPro
     setSubmitting(true);
     const result = await onConfirm(filled.join(""));
     if (!result.valid) {
-      setError(result.error ?? "ნომერი ვერ მოიძებნა");
+      setError(result.error ?? "nomeri ver moiZebna");
       setDigits([]);
     }
     setSubmitting(false);
   }
 
-  return (
-    <div className="flex h-screen w-screen flex-col items-center justify-between bg-background py-10 px-8">
-      {/* Back button */}
-      <div className="w-full max-w-xs">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span className="text-sm">უკან</span>
-        </button>
-      </div>
+  const footer = (
+    <>
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        uKan
+      </button>
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <X className="h-4 w-4" />
+        gaUqmeba
+      </button>
+    </>
+  );
 
-      {/* Heading + display */}
-      <div className="flex flex-col items-center gap-8">
-        <div className="text-center">
-          <p className="text-sm font-medium tracking-widest uppercase text-primary mb-2">
-            ნაბიჯი 1 / 2
+  return (
+    <KioskShell title={terminalTitle} footer={footer}>
+      <div className="flex flex-col items-center justify-between h-full py-8 px-8">
+        {/* Heading */}
+        <div className="text-center space-y-2">
+          <p className="text-sm font-semibold tracking-widest uppercase text-primary">
+            nabiJi 1 / 2
           </p>
-          <h1 className="text-3xl font-bold text-foreground">
-            შეიყვანეთ ოთახის ან პირადი ნომერი
+          <h1
+            className="text-3xl font-bold text-foreground"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            ShEiyvanEt othakhis an piradI nomeri
           </h1>
         </div>
 
-        <OtpDisplay
-          digits={digits}
-          length={MAX_LENGTH}
-          activeIndex={digits.length}
-          error={!!error}
+        {/* Input display + error */}
+        <div className="flex flex-col items-center gap-4">
+          <OtpDisplay
+            digits={digits}
+            length={MAX_LENGTH}
+            activeIndex={digits.length}
+            error={!!error}
+          />
+          {error && (
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Keypad */}
+        <NumericKeypad
+          onDigit={handleDigit}
+          onDelete={handleDelete}
+          onSubmit={handleSubmit}
+          submitDisabled={digits.length < MIN_LENGTH}
+          disabled={submitting || loading}
         />
-
-        {error && (
-          <div className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span className="text-sm">{error}</span>
-          </div>
-        )}
       </div>
-
-      {/* Keypad */}
-      <NumericKeypad
-        onDigit={handleDigit}
-        onDelete={handleDelete}
-        onSubmit={handleSubmit}
-        submitDisabled={digits.length < MIN_LENGTH}
-        disabled={submitting || loading}
-      />
-    </div>
+    </KioskShell>
   );
 }

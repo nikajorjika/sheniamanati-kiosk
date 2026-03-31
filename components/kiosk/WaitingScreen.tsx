@@ -45,14 +45,13 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
     return () => clearInterval(interval);
   }, [packageCount, requestId, onDone]);
 
-  // Auto-dismiss success screen after 20 seconds (or on tap)
+  // Auto-dismiss success/rejection after 20 seconds
   useEffect(() => {
     if (!received) return;
     const t = setTimeout(onDone, 20_000);
     return () => clearTimeout(t);
   }, [received, onDone]);
 
-  // Auto-dismiss rejection screen after 20 seconds (or on tap)
   useEffect(() => {
     if (!rejected) return;
     const t = setTimeout(onDone, 20_000);
@@ -61,20 +60,32 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
 
   if (rejected) {
     return (
-      <div onClick={onDone} onTouchStart={onDone} className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background cursor-pointer">
+      <div
+        onClick={onDone}
+        onTouchStart={onDone}
+        className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background cursor-pointer"
+      >
         <div className="relative flex items-center justify-center">
-          <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-destructive/10 blur-[60px]" />
-          <div className="flex h-32 w-32 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10">
+          <div
+            className="pointer-events-none absolute h-48 w-48 rounded-full blur-[60px]"
+            style={{ background: "color-mix(in oklch, var(--color-destructive) 10%, transparent)" }}
+          />
+          <div
+            className="flex h-32 w-32 items-center justify-center rounded-full bg-destructive-subtle"
+            style={{ boxShadow: "0 0 40px var(--destructive-glow)" }}
+          >
             <AlertCircle className="h-16 w-16 text-destructive" strokeWidth={1.5} />
           </div>
         </div>
-
         <div className="max-w-md space-y-4 text-center">
-          <h1 className="text-3xl font-bold text-foreground">
-            მოთხოვნა უარყოფილია
+          <h1
+            className="text-3xl font-bold text-foreground"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            moTkhovna uarqopilia
           </h1>
           <p className="text-xl text-muted-foreground">
-            დამატებითი ინფორმაციისთვის გთხოვთ მიმართოთ მოლარეს
+            damatebiTi inpormaciisaTvis gTxovT mimarToT molarEs
           </p>
         </div>
       </div>
@@ -85,55 +96,64 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
         <div className="relative flex items-center justify-center">
-          <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-muted/20 blur-[60px]" />
-          <div className="flex h-32 w-32 items-center justify-center rounded-full border border-border bg-card">
+          <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-muted/40 blur-[60px]" />
+          <div className="flex h-32 w-32 items-center justify-center rounded-full bg-surface-container-highest">
             <PackageX className="h-16 w-16 text-muted-foreground" strokeWidth={1.5} />
           </div>
         </div>
-
         <div className="max-w-sm space-y-3 text-center">
-          <h1 className="text-3xl font-bold text-foreground">
-            ამანათი არ მოიძებნა
+          <h1
+            className="text-3xl font-bold text-foreground"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            amanaTi ar moiZebna
           </h1>
           <p className="text-xl text-muted-foreground">
-            გადახდილი ამანათი არ გაქვთ — გთხოვთ, მოგვიანებით სცადოთ
+            gadakhdiTi amanaTi ar gakvs — gTxovT, mogvianebiT scadoT
           </p>
         </div>
       </div>
     );
   }
 
-  // Success message after warehouse marks received
   if (received) {
     return (
-      <div onClick={onDone} onTouchStart={onDone} className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background cursor-pointer">
-        {/* Success glow + icon */}
+      <div
+        onClick={onDone}
+        onTouchStart={onDone}
+        className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background cursor-pointer"
+      >
         <div className="relative flex items-center justify-center">
-          <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-success/10 blur-[60px]" />
-          <div className="flex h-32 w-32 items-center justify-center rounded-full border border-success/30 bg-success/10">
+          <div
+            className="pointer-events-none absolute h-48 w-48 rounded-full blur-[60px]"
+            style={{ background: "color-mix(in oklch, var(--color-success) 10%, transparent)" }}
+          />
+          <div
+            className="flex h-32 w-32 items-center justify-center rounded-full bg-success/10"
+            style={{ boxShadow: "0 0 40px var(--success-glow)" }}
+          >
             <CheckCircle2 className="h-16 w-16 text-success" strokeWidth={1.5} />
           </div>
         </div>
-
-        {/* Message */}
         <div className="max-w-sm space-y-3 text-center">
-          <h1 className="text-3xl font-bold text-foreground">
-            ✓ თქვენი მიწოდება მოხდა!
+          <h1
+            className="text-3xl font-bold text-foreground"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            ✓ TqvEni miwodeba mokhda!
           </h1>
           <p className="text-xl text-muted-foreground">
-            თქვენი{" "}
+            TqvEni{" "}
             <span className="font-bold text-foreground">{receivedCount}</span>{" "}
-            {receivedCount === 1 ? "ამანათი" : "ამანათი"} მზად არის — გთხოვთ, აიყარეთ
+            amanaTi mzad aris — gTxovT, aiqariT
           </p>
         </div>
-
-        {/* Received tracking numbers */}
         {receivedTrackingNumbers.length > 0 && (
           <div className="flex flex-col items-center gap-2">
             {receivedTrackingNumbers.map((tn) => (
               <span
                 key={tn}
-                className="rounded-lg border border-border bg-card px-4 py-2 font-mono text-sm text-muted-foreground"
+                className="rounded-lg bg-surface-container-highest px-4 py-2 font-mono text-sm text-muted-foreground"
               >
                 {tn}
               </span>
@@ -144,36 +164,42 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
     );
   }
 
-  // Waiting screen
+  // ── Waiting state ────────────────────────────────────────────────────────
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-10 bg-background">
-      {/* Waiting icon */}
       <div className="relative flex items-center justify-center">
-        <div className="pointer-events-none absolute h-48 w-48 rounded-full bg-amber-500/10 blur-[60px]" />
-        <div className="flex h-32 w-32 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
-          <CheckCircle2 className="h-16 w-16 text-amber-500" strokeWidth={1.5} />
+        <div
+          className="pointer-events-none absolute h-48 w-48 rounded-full blur-[60px]"
+          style={{ background: "color-mix(in oklch, var(--color-primary) 8%, transparent)" }}
+        />
+        <div
+          className="flex h-32 w-32 items-center justify-center rounded-full bg-secondary-container"
+          style={{ boxShadow: "0 0 40px var(--primary-glow)" }}
+        >
+          <CheckCircle2 className="h-16 w-16 text-primary" strokeWidth={1.5} />
         </div>
       </div>
 
-      {/* Message */}
       <div className="max-w-sm space-y-3 text-center">
-        <h1 className="text-3xl font-bold text-foreground">
-          მოთხოვნა მიღებულია
+        <h1
+          className="text-3xl font-bold text-foreground"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          moTkhovna miGebuli
         </h1>
         <p className="text-xl text-muted-foreground">
-          თქვენი{" "}
+          TqvEni{" "}
           <span className="font-bold text-foreground">{packageCount}</span>{" "}
-          {packageCount === 1 ? "ამანათი" : "ამანათი"} მზადდება — გთხოვთ, დაიცადოთ
+          amanaTi mzdadeba — gTxovT, daicadoT
         </p>
       </div>
 
-      {/* Tracking numbers */}
       {trackingNumbers.length > 0 && (
         <div className="flex flex-col items-center gap-2">
           {trackingNumbers.map((tn) => (
             <span
               key={tn}
-              className="rounded-lg border border-border bg-card px-4 py-2 font-mono text-sm text-muted-foreground"
+              className="rounded-lg bg-surface-container-highest px-4 py-2 font-mono text-sm text-muted-foreground"
             >
               {tn}
             </span>
@@ -181,12 +207,11 @@ export function WaitingScreen({ packageCount, trackingNumbers, requestId, onDone
         </div>
       )}
 
-      {/* Pulsing dots */}
       <div className="flex gap-2">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="h-2.5 w-2.5 animate-pulse rounded-full bg-amber-500/60"
+            className="h-2.5 w-2.5 animate-pulse rounded-full bg-primary/50"
             style={{ animationDelay: `${i * 0.3}s` }}
           />
         ))}

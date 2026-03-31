@@ -9,15 +9,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        // Spec: gradient fill 135° primary → primary-container, no flat bg
+        default:
+          "bg-primary-gradient text-primary-foreground shadow-sm hover:brightness-110 active:brightness-95",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 focus-visible:ring-destructive/20",
+        // Spec: surface_variant bg, no border (secondary button)
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "bg-surface-container-lowest shadow-xs hover:bg-surface-container hover:text-on-surface",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-surface-container text-secondary-foreground hover:bg-surface-container-high",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+          "hover:bg-surface-container hover:text-on-surface",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -25,10 +28,10 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        // Kiosk touch sizes — minimum 56–64 px tap targets for tablet use
-        kiosk: "h-16 rounded-2xl px-8 text-xl font-semibold has-[>svg]:px-6 [&_svg:not([class*='size-'])]:size-6",
+        // Kiosk touch sizes — spec min 72dp, title-lg (1.375rem) text
+        kiosk: "h-[72px] rounded-2xl px-8 text-[1.375rem] font-bold has-[>svg]:px-6 [&_svg:not([class*='size-'])]:size-6",
         "kiosk-sm": "h-14 rounded-xl px-6 text-lg font-semibold has-[>svg]:px-4 [&_svg:not([class*='size-'])]:size-5",
-        "icon-kiosk": "size-16 rounded-2xl [&_svg:not([class*='size-'])]:size-7",
+        "icon-kiosk": "size-[72px] rounded-2xl [&_svg:not([class*='size-'])]:size-7",
         icon: "size-9",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
