@@ -8,6 +8,7 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3000,
+        API_URL: "https://staging.sheniamanati.ge",
       },
     },
   ],
