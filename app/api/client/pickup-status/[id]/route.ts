@@ -8,7 +8,9 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    const res = await fetch(`${API_URL}/api/client/pickup-status/${id}`);
+    const res = await fetch(`${API_URL}/api/client/pickup-status/${id}`, {
+      headers: { "Accept": "application/json" },
+    });
     const data = await res.json();
     return NextResponse.json({
       received: data.received ?? false,

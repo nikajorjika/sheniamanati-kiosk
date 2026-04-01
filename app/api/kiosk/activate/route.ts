@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
 
   const res = await fetch(`${API_URL}/api/kiosk/activate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
     body: JSON.stringify({ short_code, access_code }),
   });
 

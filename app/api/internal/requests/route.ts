@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   if (branchId) url.searchParams.set("branch_id", branchId);
 
   const res = await fetch(url.toString(), {
-    headers: { Authorization: authorization },
+    headers: { Authorization: authorization, "Accept": "application/json" },
   });
 
   if (!res.ok) {

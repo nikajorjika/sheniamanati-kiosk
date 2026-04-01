@@ -10,6 +10,7 @@ export async function POST(
   try {
     const res = await fetch(`${API_URL}/api/client/cancel-request/${id}`, {
       method: "POST",
+      headers: { "Accept": "application/json" },
     });
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
