@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const res = await fetch(`${API_URL}/api/client/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify({ tablet_id: tabletId, room_number: roomNumber, otp }),
+    body: JSON.stringify({ kiosk_terminal_id: Number(tabletId), room_number: roomNumber, otp }),
   });
 
   const data = await res.json();

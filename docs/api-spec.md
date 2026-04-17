@@ -62,7 +62,7 @@ Called once when a manager sets up a new device. Validates the two kiosk codes a
 | Field | Type | Description |
 |-------|------|-------------|
 | `token` | string | Bearer token (8h TTL) used for internal API calls |
-| `terminal_id` | integer | DB id of the terminal, used as `tablet_id` in client calls |
+| `terminal_id` | integer | DB id of the terminal, sent as `kiosk_terminal_id` in client calls |
 | `terminal_number` | string | 3-digit display number |
 | `terminal_name` | string\|null | Optional display name |
 | `terminal_type` | `"front"` \| `"warehouse"` | Determines which page the device routes to |
@@ -93,14 +93,14 @@ Called when a guest enters their room number at the kiosk. Validates the room, g
 **Request:**
 ```json
 {
-  "tablet_id": "123",
+  "kiosk_terminal_id": 5,
   "room_number": "142857"
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `tablet_id` | string | 3-digit terminal identifier |
+| `kiosk_terminal_id` | integer | DB id of the terminal (from activation response) |
 | `room_number` | string | 6-digit room number entered by guest |
 
 **Response — valid room:**
@@ -134,7 +134,7 @@ Called after the guest enters the SMS code. Validates the OTP and, on success, c
 **Request:**
 ```json
 {
-  "tablet_id": "123",
+  "kiosk_terminal_id": 5,
   "room_number": "142857",
   "otp": "483920"
 }
@@ -142,7 +142,7 @@ Called after the guest enters the SMS code. Validates the OTP and, on success, c
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `tablet_id` | string | 3-digit terminal identifier |
+| `kiosk_terminal_id` | integer | DB id of the terminal (from activation response) |
 | `room_number` | string | Room number from the previous step |
 | `otp` | string | 6-digit code entered by guest |
 
