@@ -14,7 +14,7 @@ type ClientScreen = "screensaver" | "room" | "otp" | "waiting";
 export default function ClientPortal() {
   const router = useRouter();
   const [screen, setScreen] = useState<ClientScreen | null>(null);
-  const [tabletId, setTabletId] = useState<string | null>(null);
+  const [kioskTerminalId, setKioskTerminalId] = useState<number | null>(null);
   const [terminalTitle, setTerminalTitle] = useState<string>("");
   const [phoneLastThree, setPhoneLastThree] = useState("00");
   const [roomNumber, setRoomNumber] = useState("");
@@ -29,7 +29,7 @@ export default function ClientPortal() {
       router.replace("/");
       return;
     }
-    setTabletId(String(config.terminalId));
+    setKioskTerminalId(config.terminalId);
     setTerminalTitle(
       config.terminalName
         ? `${config.branchName} — ${config.terminalName}`
@@ -47,12 +47,12 @@ export default function ClientPortal() {
     const res = await fetch("/api/client/identify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tabletId, roomNumber: num }),
+      body: JSON.stringify({ kiosk_terminal_id: kioskTerminalId, room_number: num }),
     });
     const data = await res.json();
     if (data.valid) {
       setRoomNumber(num);
-      setPhoneLastThree(data.phoneLastThree);
+      setPhoneLastThree(data.phone_last_three);
       setScreen("otp");
       return { valid: true };
     }
@@ -63,11 +63,11 @@ export default function ClientPortal() {
     const res = await fetch("/api/client/identify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tabletId, roomNumber }),
+      body: JSON.stringify({ kiosk_terminal_id: kioskTerminalId, room_number: roomNumber }),
     });
     const data = await res.json();
     if (data.valid) {
-      setPhoneLastThree(data.phoneLastThree);
+      setPhoneLastThree(data.phone_last_three);
     }
   }
 
@@ -80,7 +80,7 @@ export default function ClientPortal() {
     const res = await fetch("/api/client/verify-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tabletId, roomNumber, otp }),
+      body: JSON.stringify({ kiosk_terminal_id: kioskTerminalId, room_number: roomNumber, otp }),
     });
     const data = await res.json();
     if (data.valid) {

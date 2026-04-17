@@ -285,4 +285,4 @@ The frontend handles `valid: false` / `success: false` at the application level 
 
 ## Field Naming
 
-The Laravel API should use **snake_case** for all JSON fields (e.g. `phone_last_three`, `tracking_numbers`, `package_count`). The Next.js layer maps these to camelCase where needed internally.
+All JSON field names use **snake_case** end-to-end (e.g. `phone_last_three`, `tracking_numbers`, `package_count`, `kiosk_terminal_id`). The Next.js `/api/*` routes are thin passthrough proxies — they forward the browser request body to Laravel and return Laravel's response verbatim. Their only added responsibilities are attaching the `Authorization` header and hiding `API_URL` from the browser. Do not re-key fields in a proxy.

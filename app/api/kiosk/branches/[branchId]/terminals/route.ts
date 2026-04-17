@@ -8,9 +8,9 @@ export async function GET(
 ) {
   const { branchId } = await params;
   const res = await fetch(`${API_URL}/api/kiosk/branches/${branchId}/terminals`, {
-    headers: { "Accept": "application/json" },
+    headers: { Accept: "application/json" },
   });
-  const data = await res.json();
 
-  return NextResponse.json({ terminals: data.data ?? [] });
+  const data = await res.json().catch(() => ({}));
+  return NextResponse.json(data, { status: res.status });
 }

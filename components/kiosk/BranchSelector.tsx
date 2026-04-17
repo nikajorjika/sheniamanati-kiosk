@@ -20,7 +20,7 @@ export function BranchSelector({ onSelect }: BranchSelectorProps) {
   useEffect(() => {
     fetch("/api/kiosk/branches")
       .then((r) => r.json())
-      .then((data) => setBranches(data.branches ?? []))
+      .then((data) => setBranches(data.data ?? []))
       .catch(() => setError("ფილიალების ჩატვირთვა ვერ მოხდა"))
       .finally(() => setLoading(false));
   }, []);

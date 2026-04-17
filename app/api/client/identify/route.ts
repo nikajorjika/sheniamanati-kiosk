@@ -3,22 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 const API_URL = process.env.API_URL ?? "http://localhost";
 
 export async function POST(req: NextRequest) {
-  const { tabletId, roomNumber } = await req.json();
+  const body = await req.text();
 
   const res = await fetch(`${API_URL}/api/client/identify`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify({ kiosk_terminal_id: Number(tabletId), room_number: roomNumber }),
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body,
   });
 
-  const data = await res.json();
-
-  if (!data.valid) {
-    return NextResponse.json({ valid: false, error: data.error }, { status: res.status });
-  }
-
-  return NextResponse.json({
-    valid: true,
-    phoneLastThree: data.phone_last_three,
-  });
+  const data = await res.json().catch(() => ({}));
+  return NextResponse.json(data, { status: res.status });
 }

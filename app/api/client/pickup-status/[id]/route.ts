@@ -9,21 +9,11 @@ export async function GET(
   const { id } = await params;
   try {
     const res = await fetch(`${API_URL}/api/client/pickup-status/${id}`, {
-      headers: { "Accept": "application/json" },
+      headers: { Accept: "application/json" },
     });
-    const data = await res.json();
-    return NextResponse.json({
-      received: data.received ?? false,
-      rejected: data.rejected ?? false,
-      cancelled: data.cancelled ?? false,
-      received_count: data.received_count ?? null,
-      received_tracking_numbers: data.received_tracking_numbers ?? null,
-      marked_by_terminal_id: data.marked_by_terminal_id ?? null,
-      marked_at: data.marked_at ?? null,
-      rejected_by_terminal_id: data.rejected_by_terminal_id ?? null,
-      rejected_at: data.rejected_at ?? null,
-    });
+    const data = await res.json().catch(() => ({}));
+    return NextResponse.json(data, { status: res.status });
   } catch {
-    return NextResponse.json({ received: false, rejected: false }, { status: 200 });
+    return NextResponse.json({ received: false, rejected: false, cancelled: false }, { status: 200 });
   }
 }

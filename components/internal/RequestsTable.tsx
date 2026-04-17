@@ -34,7 +34,7 @@ export function RequestsTable({ token, branch, onLogout }: RequestsTableProps) {
         return;
       }
       const data = await res.json();
-      setRequests(data.requests ?? []);
+      setRequests(data.data ?? []);
       setLastUpdated(new Date());
     } catch {
       // silently fail on poll — data stays stale
@@ -50,12 +50,12 @@ export function RequestsTable({ token, branch, onLogout }: RequestsTableProps) {
   }, [fetchRequests]);
 
   function getSelected(req: PickupRequest): string[] {
-    return selectedByRequest[req.id] ?? req.trackingNumbers;
+    return selectedByRequest[req.id] ?? req.tracking_numbers;
   }
 
   function toggleTracking(req: PickupRequest, trackingNumber: string) {
     setSelectedByRequest((prev) => {
-      const current = prev[req.id] ?? req.trackingNumbers;
+      const current = prev[req.id] ?? req.tracking_numbers;
       const next = current.includes(trackingNumber)
         ? current.filter((tn) => tn !== trackingNumber)
         : [...current, trackingNumber];
@@ -201,14 +201,14 @@ export function RequestsTable({ token, branch, onLogout }: RequestsTableProps) {
                     className="transition-colors group hover:bg-secondary/40"
                   >
                     <td className="py-4 pl-6 pr-4 text-base font-medium text-foreground">
-                      {req.clientName}
+                      {req.client_name}
                     </td>
                     <td className="py-4 pr-4 font-mono text-sm font-semibold text-primary">
-                      #{req.kioskNumber}
+                      #{req.kiosk_number}
                     </td>
                     <td className="py-4 pr-4">
                       <div className="flex flex-col gap-1.5">
-                        {req.trackingNumbers.map((tn) => {
+                        {req.tracking_numbers.map((tn) => {
                           const checked = selected.includes(tn);
                           return (
                             <label
@@ -236,10 +236,10 @@ export function RequestsTable({ token, branch, onLogout }: RequestsTableProps) {
                       </div>
                     </td>
                     <td className="py-4 pr-4 font-mono text-sm font-semibold text-primary">
-                      {req.roomNumber}
+                      {req.room_number}
                     </td>
                     <td className="py-4 pr-4 text-sm text-muted-foreground">
-                      {formatTime(req.createdAt)}
+                      {formatTime(req.created_at)}
                     </td>
                     <td className="py-4 pl-4 pr-6 text-right">
                       <div className="flex items-center justify-end gap-2">

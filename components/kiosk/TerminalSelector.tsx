@@ -24,7 +24,7 @@ export function TerminalSelector({ branch, onSelect, onBack }: TerminalSelectorP
   useEffect(() => {
     fetch(`/api/kiosk/branches/${branch.id}/terminals`)
       .then((r) => r.json())
-      .then((data) => setTerminals(data.terminals ?? []))
+      .then((data) => setTerminals(data.data ?? []))
       .catch(() => setError("ტერმინალების ჩატვირთვა ვერ მოხდა"))
       .finally(() => setLoading(false));
   }, [branch.id]);

@@ -4,11 +4,11 @@ const API_URL = process.env.API_URL ?? "http://localhost";
 
 export interface PickupRequest {
   id: string;
-  clientName: string;
-  trackingNumbers: string[];
-  roomNumber: string;
-  kioskNumber: string;
-  createdAt: string; // ISO string
+  client_name: string;
+  room_number: string;
+  tracking_numbers: string[];
+  kiosk_number: string;
+  created_at: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -19,33 +19,9 @@ export async function GET(req: NextRequest) {
   if (branchId) url.searchParams.set("branch_id", branchId);
 
   const res = await fetch(url.toString(), {
-    headers: { Authorization: authorization, "Accept": "application/json" },
+    headers: { Authorization: authorization, Accept: "application/json" },
   });
 
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: res.statusText }));
-    return NextResponse.json(error, { status: res.status });
-  }
-
-  const data = await res.json();
-
-  const requests: PickupRequest[] = (data.data ?? []).map(
-    (item: {
-      id: string;
-      client_name: string;
-      room_number: string;
-      tracking_numbers: string[];
-      kiosk_number: string;
-      created_at: string;
-    }) => ({
-      id: item.id,
-      clientName: item.client_name,
-      roomNumber: item.room_number,
-      trackingNumbers: item.tracking_numbers,
-      kioskNumber: item.kiosk_number ?? "",
-      createdAt: item.created_at,
-    })
-  );
-
-  return NextResponse.json({ requests });
+  const data = await res.json().catch(() => ({}));
+  return NextResponse.json(data, { status: res.status });
 }
