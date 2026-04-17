@@ -178,42 +178,7 @@ Called after the guest enters the SMS code. Validates the OTP and, on success, c
 
 ## Internal Endpoints
 
-All internal endpoints require `Authorization: Bearer <token>` header.
-
----
-
-### `POST /api/internal/auth`
-
-Admin login. Returns a Bearer token on success.
-
-**Request:**
-```json
-{
-  "username": "admin",
-  "password": "secret"
-}
-```
-
-**Response — success:**
-```json
-{
-  "success": true,
-  "token": "<bearer_token>"
-}
-```
-
-**Response — failure:**
-```json
-{
-  "success": false,
-  "error": "Invalid credentials"
-}
-```
-
-**Notes:**
-- Validates against the existing `admins` table in Laravel
-- Token is stored in memory on the frontend (page refresh requires re-login)
-- Token lifetime is at your discretion — recommend at least 8 hours for a shift
+All internal endpoints require `Authorization: Bearer <token>` header. The Bearer token is the one issued by `POST /api/kiosk/activate` — there is no separate per-user login. All warehouse staff share the tablet and act under the terminal's identity.
 
 ---
 

@@ -105,7 +105,7 @@ Override label with `label` prop if needed. Use this instead of ad-hoc badge sty
 components/
   ui/          # Generic primitives (Button, Card, Badge, StatusBadge, Input)
   kiosk/       # Customer-facing screens (Screensaver, OtpKeypad, RoomKeypad, etc.)
-  internal/    # Warehouse/employee screens (LoginScreen, RequestsTable)
+  internal/    # Warehouse/employee screens (RequestsTable)
   shared/      # Reusable across both flows (NumericKeypad, OtpDisplay)
 ```
 

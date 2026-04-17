@@ -18,12 +18,12 @@ npm run lint   # ESLint flat config
 |---|---|---|
 | `/` | Landing | Two half-screen nav buttons |
 | `/client` | Customer tablet | Full kiosk flow |
-| `/internal` | Employee tablet | Login → requests table |
+| `/internal` | Warehouse tablet | Requests table (no per-user login) |
 | `/api/client/identify` | POST | Validate room number, return phone mask |
 | `/api/client/verify-otp` | POST | Validate SMS OTP, create pickup request |
-| `/api/internal/auth` | POST | Employee login (mock: `admin`/`admin123`) |
 | `/api/internal/requests` | GET | Active pickup requests list |
 | `/api/internal/mark-received` | POST | Mark a request as fulfilled |
+| `/api/internal/reject-request` | POST | Reject a pickup request |
 
 ## Project Structure
 ```
@@ -33,9 +33,9 @@ app/
   internal/page.tsx             # Internal app state machine ("use client")
   api/client/identify/          # POST — room number validation
   api/client/verify-otp/        # POST — SMS OTP validation
-  api/internal/auth/            # POST — employee login
   api/internal/requests/        # GET  — active requests
   api/internal/mark-received/   # POST — mark fulfilled
+  api/internal/reject-request/  # POST — reject request
   globals.css                   # Tailwind v4 + full dark token system
   layout.tsx                    # lang="ka", className="dark", overflow-hidden
 components/
@@ -46,7 +46,6 @@ components/
     OtpKeypad.tsx               # Step 2: 6-digit SMS OTP + NumericKeypad + phone mask
     WaitingScreen.tsx           # Confirmation — auto-resets to screensaver in 10s
   internal/
-    LoginScreen.tsx             # Username + password form
     RequestsTable.tsx           # Active requests table — polls every 10s
   shared/
     NumericKeypad.tsx           # Touch-optimized 3×3 + 0 + ⌫ keypad
@@ -85,13 +84,15 @@ lib/
 
 ## Internal App Flow (`/internal`)
 ```
-LoginScreen ── POST /api/internal/auth ──► RequestsTable
-                                                │
+loadKioskConfig() (terminalType === "warehouse") ──► RequestsTable
+                                                           │
                                      polls GET /api/internal/requests every 10s
-                                                │
-                                  "მიღებულია" → POST /api/internal/mark-received
+                                                           │
+                              "მიღებულია" → POST /api/internal/mark-received
+                              "უარყოფა"   → POST /api/internal/reject-request
                                              (row removed optimistically)
 ```
+- Auth: the device's kiosk activation token (written to localStorage during kiosk setup) is sent as `Authorization: Bearer <token>` on every request. No per-user login — all warehouse staff share the tablet.
 
 ## Key Shared Components
 
