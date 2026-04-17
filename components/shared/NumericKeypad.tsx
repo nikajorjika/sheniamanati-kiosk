@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Delete, ArrowRight } from "lucide-react";
 
@@ -24,6 +25,36 @@ export function NumericKeypad({
   submitDisabled = false,
   disabled = false,
 }: NumericKeypadProps) {
+  useEffect(() => {
+    if (disabled) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        onDigit(e.key);
+        return;
+      }
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        onDelete();
+        return;
+      }
+      if (e.key === "Enter") {
+        if (submitDisabled) return;
+        e.preventDefault();
+        onSubmit();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [disabled, submitDisabled, onDigit, onDelete, onSubmit]);
+
   return (
     <div className="grid w-full max-w-xs gap-3 select-none mx-auto">
       {ROWS.map((row) => (
