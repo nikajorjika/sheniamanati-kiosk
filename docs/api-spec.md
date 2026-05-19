@@ -201,6 +201,7 @@ Returns all active (pending) pickup requests, grouped by guest. Each entry may h
         "GE987654321",
         "GE555000111"
       ],
+      "received_tracking_numbers": ["GE123456789"],
       "created_at": "2026-02-24T10:00:00Z"
     },
     {
@@ -222,6 +223,7 @@ Returns all active (pending) pickup requests, grouped by guest. Each entry may h
 | `client_name` | string | Guest full name |
 | `room_number` | string | Guest room number |
 | `tracking_numbers` | string[] | All parcel tracking numbers for this request |
+| `received_tracking_numbers` | string[] | Subset of `tracking_numbers` whose `Package.status` is already `received`. Populated by partial scans from `/internal/scan-package`. Used by the scan panel to render per-package progress (green ticks). May be omitted for empty arrays. |
 | `created_at` | string (ISO 8601) | When the kiosk request was created |
 
 **Notes:**
@@ -263,6 +265,56 @@ Marks a pickup request as fulfilled.
 - Set pickup request status to `received`
 - Record `received_at` timestamp
 - The frontend removes the row optimistically — no further sync needed
+
+---
+
+### `POST /api/internal/scan-package`
+
+Marks a single package as received by tracking number — used by the warehouse scan panel where a worker scans the barcode on a parcel. This endpoint operates per-package (not per-request); the parent `PickupRequest` is auto-completed only when every package in it has reached `received`.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request:**
+```json
+{
+  "tracking_number": "GE123456789"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "received",
+  "tracking_number": "GE123456789",
+  "request_id": "uuid",
+  "client_name": "გიორგი მამალაძე",
+  "room_number": "142857",
+  "request_completed": false,
+  "remaining": ["GE987654321", "GE555000111"]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | enum | One of `received` \| `already_received` \| `no_pending_request` \| `not_found` |
+| `tracking_number` | string | The tracking number that was scanned (echoed back, trimmed) |
+| `request_id` | string (UUID) | Parent pickup request — only present when `status = received` |
+| `client_name` | string\|null | Customer display name — only when `status = received` |
+| `room_number` | string\|null | Customer room number — only when `status = received` |
+| `request_completed` | bool | `true` if this scan completed the parent request (all packages received) |
+| `remaining` | string[] | Tracking numbers in the request still not received |
+
+**Status meanings:**
+- `received` — package was `arrived`, now flipped to `received`. Triggers `PackageObserver` → SMS, same as the legacy mark-received endpoint.
+- `already_received` — package status was already `received`; no-op.
+- `no_pending_request` — package exists but no pending `PickupRequest` at this terminal's branch contains it. (E.g. customer hasn't started a pickup flow yet, or request belongs to another branch.)
+- `not_found` — no `Package` row matches the scanned tracking number.
+
+**Backend responsibilities:**
+- Update only the single `Package` row matching `tracking_number`.
+- Scope pending-request lookup to pickup requests whose `kiosk_terminal_id` is in the warehouse terminal's branch.
+- If every tracking number on the parent `PickupRequest` is `received` after this scan, also set `pickup_request.status = received`, `received_at = now`, `marked_by_terminal_id = <scanning terminal>`, `marked_at = now`.
+- Always return HTTP 200 with a `status` discriminator — error states are domain conditions, not transport errors.
 
 ---
 

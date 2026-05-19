@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Package, RefreshCw, LogOut, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Package, RefreshCw, LogOut, ScanLine, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { PickupRequest } from "@/app/api/internal/requests/route";
@@ -16,6 +17,7 @@ interface RequestsTableProps {
 const POLL_INTERVAL = 10_000; // 10 seconds
 
 export function RequestsTable({ token, branch, onLogout }: RequestsTableProps) {
+  const router = useRouter();
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingId, setMarkingId] = useState<string | null>(null);
@@ -140,6 +142,15 @@ export function RequestsTable({ token, branch, onLogout }: RequestsTableProps) {
               განახლდა: {lastUpdated.toLocaleTimeString("ka-GE")}
             </span>
           )}
+          <Button
+            onClick={() => router.push("/internal/scan")}
+            variant="outline"
+            size="sm"
+            className="gap-2 border-border"
+          >
+            <ScanLine className="w-4 h-4" />
+            სკანირება
+          </Button>
           <Button
             onClick={fetchRequests}
             variant="outline"

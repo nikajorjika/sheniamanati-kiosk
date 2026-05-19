@@ -7,6 +7,8 @@ export interface PickupRequest {
   client_name: string;
   room_number: string;
   tracking_numbers: string[];
+  /** Tracking numbers in this request whose Package.status is already `received`. */
+  received_tracking_numbers?: string[];
   kiosk_number: string;
   created_at: string;
 }

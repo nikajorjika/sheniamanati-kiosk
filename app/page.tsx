@@ -12,7 +12,7 @@ export default function LandingPage() {
   useEffect(() => {
     const config = loadKioskConfig();
     if (config) {
-      router.replace(config.terminalType === "warehouse" ? "/internal" : "/client");
+      router.replace(config.terminalType === "warehouse" ? "/internal/scan" : "/client");
     } else {
       setReady(true);
     }
@@ -20,7 +20,7 @@ export default function LandingPage() {
 
   function handleActivate(config: KioskConfig) {
     saveKioskConfig(config);
-    router.replace(config.terminalType === "warehouse" ? "/internal" : "/client");
+    router.replace(config.terminalType === "warehouse" ? "/internal/scan" : "/client");
   }
 
   if (!ready) return null;
