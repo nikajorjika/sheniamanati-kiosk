@@ -18,8 +18,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import type { Branch } from "@/components/kiosk/BranchSelector";
 import type { PickupRequest } from "@/app/api/internal/requests/route";
+import type { HistoryItem } from "@/app/api/internal/history/route";
 import type {
   ScanPackageResponse,
   ScanResultStatus,
@@ -67,7 +69,6 @@ const TONE_ICON: Record<"success" | "warning" | "destructive", typeof CheckCircl
   destructive: XCircle,
 };
 
-const MAX_HISTORY = 25;
 const POLL_INTERVAL = 10_000;
 
 export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
@@ -75,7 +76,8 @@ export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [buffer, setBuffer] = useState("");
-  const [history, setHistory] = useState<ScanEntry[]>([]);
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [lastResult, setLastResult] = useState<ScanEntry | null>(null);
   const [tab, setTab] = useState<Tab>("requests");
@@ -114,6 +116,31 @@ export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
     const interval = setInterval(fetchRequests, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchRequests]);
+
+  const fetchHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(`/api/internal/history?branch_id=${branch.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) {
+        onLogout();
+        return;
+      }
+      const data = await res.json();
+      setHistoryItems(data.data ?? []);
+    } catch {
+      // keep previous data silently
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [token, branch.id, onLogout]);
+
+  useEffect(() => {
+    if (tab === "history") {
+      fetchHistory();
+    }
+  }, [tab, fetchHistory]);
 
   const flash = useCallback((trackingNumber: string) => {
     setFlashing((prev) => {
@@ -168,7 +195,6 @@ export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
           scannedAt: new Date(),
         };
         setLastResult(entry);
-        setHistory((prev) => [entry, ...prev].slice(0, MAX_HISTORY));
 
         if (status === "received" && data?.request_id) {
           const requestId = data.request_id;
@@ -188,6 +214,8 @@ export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
               delete next[requestId];
               return next;
             });
+            // The request just left the active queue — refresh history if open/next-open.
+            fetchHistory();
           }
         }
       } catch {
@@ -199,14 +227,13 @@ export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
           scannedAt: new Date(),
         };
         setLastResult(entry);
-        setHistory((prev) => [entry, ...prev].slice(0, MAX_HISTORY));
       } finally {
         setSubmitting(false);
         setBuffer("");
         inputRef.current?.focus();
       }
     },
-    [token, onLogout, flash],
+    [token, onLogout, flash, fetchHistory],
   );
 
   useEffect(() => {
@@ -406,7 +433,7 @@ export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
                 onClick={() => setTab("history")}
                 icon={Clock}
                 label="ისტორია"
-                count={history.length}
+                count={historyItems.length}
               />
             </div>
             {tab === "requests" && (
@@ -418,15 +445,13 @@ export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             )}
-            {tab === "history" && history.length > 0 && (
+            {tab === "history" && (
               <button
-                onClick={() => {
-                  setHistory([]);
-                  inputRef.current?.focus();
-                }}
-                className="mb-2 text-xs transition-colors text-muted-foreground hover:text-foreground"
+                onClick={fetchHistory}
+                aria-label="განახლება"
+                className="flex items-center justify-center mb-2 transition-colors rounded h-7 w-7 text-muted-foreground hover:text-foreground"
               >
-                გასუფთავება
+                <RefreshCw className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -442,7 +467,7 @@ export function ScanPanel({ token, branch, onLogout }: ScanPanelProps) {
               lastUpdated={lastUpdated}
             />
           ) : (
-            <HistoryList history={history} />
+            <HistoryList items={historyItems} loading={historyLoading} />
           )}
         </aside>
       </div>
@@ -615,15 +640,24 @@ function RequestsList({
 }
 
 interface HistoryListProps {
-  history: ScanEntry[];
+  items: HistoryItem[];
+  loading: boolean;
 }
 
-function HistoryList({ history }: HistoryListProps) {
-  if (history.length === 0) {
+function HistoryList({ items, loading }: HistoryListProps) {
+  if (loading && items.length === 0) {
+    return (
+      <div className="flex items-center justify-center flex-1">
+        <span className="w-8 h-8 border-2 rounded-full animate-spin border-border border-t-primary" />
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center flex-1 gap-2 text-center text-muted-foreground">
-        <ScanLine className="w-10 h-10 opacity-40" strokeWidth={1.25} />
-        <p className="text-sm">სკანირებები ჯერ არ არის</p>
+        <Clock className="w-10 h-10 opacity-40" strokeWidth={1.25} />
+        <p className="text-sm">დღეს დასრულებული მოთხოვნა არ არის</p>
       </div>
     );
   }
@@ -631,31 +665,42 @@ function HistoryList({ history }: HistoryListProps) {
   return (
     <div className="flex-1 px-3 py-3 overflow-auto">
       <ul className="flex flex-col gap-2">
-        {history.map((entry) => {
-          const tone = STATUS_META[entry.status].tone;
-          const Icon = TONE_ICON[tone];
-          return (
-            <li
-              key={entry.id}
-              className={`flex items-start gap-3 px-3 py-2.5 border rounded-xl ${TONE_CLASSES[tone]}`}
-            >
-              <Icon className="w-5 h-5 mt-0.5 shrink-0" strokeWidth={1.5} />
-              <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-                <span className="font-mono text-sm font-semibold truncate">
-                  {entry.trackingNumber}
-                </span>
-                <span className="text-xs opacity-80">
-                  {STATUS_META[entry.status].label}
-                  {entry.clientName ? ` · ${entry.clientName}` : ""}
-                </span>
-              </div>
-              <span className="text-xs shrink-0 opacity-60">
-                {entry.scannedAt.toLocaleTimeString("ka-GE", {
+        {items.map((item) => {
+          const received = item.received_tracking_numbers?.length ?? 0;
+          const total = item.tracking_numbers.length;
+          const parsed = item.actioned_at ? new Date(item.actioned_at) : null;
+          const time =
+            parsed && !Number.isNaN(parsed.getTime())
+              ? parsed.toLocaleTimeString("ka-GE", {
                   hour: "2-digit",
                   minute: "2-digit",
-                  second: "2-digit",
-                })}
-              </span>
+                })
+              : "";
+          return (
+            <li
+              key={item.id}
+              className="flex items-start gap-3 px-3 py-2.5 border rounded-xl border-border bg-background"
+            >
+              <div className="flex flex-col flex-1 min-w-0 gap-1">
+                <div className="flex items-center gap-2">
+                  <StatusBadge
+                    status={item.status}
+                    label={item.status === "received" ? "მიღებულია" : "უარყოფილია"}
+                  />
+                  <span className="text-sm font-semibold truncate text-foreground">
+                    {item.client_name}
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  ოთახი {item.room_number} · კიოსკი #{item.kiosk_number}
+                </span>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className="px-2 py-0.5 text-xs font-mono font-semibold rounded bg-muted text-muted-foreground">
+                  {received}/{total}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{time}</span>
+              </div>
             </li>
           );
         })}
