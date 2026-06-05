@@ -14,8 +14,8 @@ export interface HistoryItem {
   kiosk_number: string;
   /** Terminal number that finalized (marked/rejected) the request; may be null. */
   actioned_by_kiosk_number: string | null;
-  /** ISO 8601 — marked_at (received) or rejected_at (rejected). */
-  actioned_at: string;
+  /** ISO 8601 — marked_at (received) or rejected_at (rejected). Null only if neither timestamp is set. */
+  actioned_at: string | null;
   created_at: string;
 }
 

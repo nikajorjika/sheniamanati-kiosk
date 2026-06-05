@@ -275,7 +275,7 @@ Returns **today's completed** pickup requests for the branch — those finalized
 | `received_tracking_numbers` | string[] | Subset of `tracking_numbers` whose `Package.status` is `received`. Typically `[]` for rejected requests. |
 | `kiosk_number` | string | Terminal number that **created** the request |
 | `actioned_by_kiosk_number` | string\|null | Terminal number that **finalized** (marked received / rejected) the request; may be null |
-| `actioned_at` | string (ISO 8601) | `marked_at` (received) or `rejected_at` (rejected) |
+| `actioned_at` | string\|null (ISO 8601) | `marked_at` (received) or `rejected_at` (rejected); null only if neither timestamp is set |
 | `created_at` | string (ISO 8601) | When the kiosk request was created |
 
 **Notes:**
