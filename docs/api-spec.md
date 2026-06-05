@@ -233,6 +233,59 @@ Returns all active (pending) pickup requests, grouped by guest. Each entry may h
 
 ---
 
+### `GET /api/internal/history`
+
+Returns **today's completed** pickup requests for the branch — those finalized today, whether received or rejected. Backs the warehouse scan panel's History tab. Unlike `/internal/requests`, this is not polled; the frontend fetches it on tab-open, after a scan that completes a request, and via a manual refresh button.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Query params:**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `branch_id` | integer (optional) | Restrict to requests created at terminals in this branch. Same branch-scoping as `/internal/requests`. |
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "client_name": "გიორგი მამალაძე",
+      "room_number": "142857",
+      "status": "received",
+      "tracking_numbers": ["GE123456789", "GE987654321"],
+      "received_tracking_numbers": ["GE123456789"],
+      "kiosk_number": "A01",
+      "actioned_by_kiosk_number": "W02",
+      "actioned_at": "2026-06-05T14:22:00+04:00",
+      "created_at": "2026-06-05T09:10:00+04:00"
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string (UUID) | Pickup request identifier |
+| `client_name` | string | Guest full name |
+| `room_number` | string | Guest room number |
+| `status` | `"received"` \| `"rejected"` | Completion outcome |
+| `tracking_numbers` | string[] | All parcel tracking numbers for this request |
+| `received_tracking_numbers` | string[] | Subset of `tracking_numbers` whose `Package.status` is `received`. Typically `[]` for rejected requests. |
+| `kiosk_number` | string | Terminal number that **created** the request |
+| `actioned_by_kiosk_number` | string\|null | Terminal number that **finalized** (marked received / rejected) the request; may be null |
+| `actioned_at` | string (ISO 8601) | `marked_at` (received) or `rejected_at` (rejected) |
+| `created_at` | string (ISO 8601) | When the kiosk request was created |
+
+**Notes:**
+- Only requests with status `received` or `rejected`. Pending requests stay in `/internal/requests`.
+- "Today" is by action date in the app timezone: `received` with `marked_at` today **OR** `rejected` with `rejected_at` today. A request created yesterday but finalized today appears today.
+- Ordered most-recently-actioned first (`COALESCE(marked_at, rejected_at) DESC`).
+- No scan-level / not-found event log is returned — only completed requests.
+
+---
+
 ### `POST /api/internal/mark-received`
 
 Marks a pickup request as fulfilled.
